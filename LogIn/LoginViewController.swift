@@ -142,11 +142,14 @@ extension LoginViewController {
         
         view.addSubview(stackView)
         
+        let height = view.frame.height
+        let width = view.frame.width
+        
         NSLayoutConstraint.activate([
-            stackView.topAnchor.constraint(equalTo: view.topAnchor, constant: 200),
+            stackView.topAnchor.constraint(equalTo: view.topAnchor, constant: height * 0.1),
             stackView.centerXAnchor.constraint(equalTo: view.centerXAnchor),
-            stackView.widthAnchor.constraint(equalToConstant: 300),
-            stackView.bottomAnchor.constraint(equalTo: view.bottomAnchor, constant: -300)
+            stackView.widthAnchor.constraint(equalToConstant: width * 0.8),
+            stackView.heightAnchor.constraint(equalToConstant: height * 0.4)
         ])
     }
 }
