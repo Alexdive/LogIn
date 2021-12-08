@@ -10,7 +10,7 @@ import Combine
 
 class LoginViewController: UIViewController {
     
-    var model: LoginViewModelType = LoginViewModel()
+    var model: LoginViewModelType
     
     private let email = PassthroughSubject<String, Never>()
     private let pass = PassthroughSubject<String, Never>()
@@ -68,11 +68,19 @@ class LoginViewController: UIViewController {
         return button
     }()
     
+    init(model: LoginViewModelType) {
+        self.model = model
+        super.init(nibName: nil, bundle: nil)
+    }
+    
+    required init?(coder: NSCoder) {
+        fatalError("init(coder:) has not been implemented")
+    }
+    
     override func viewDidLoad() {
         super.viewDidLoad()
         
         setupViews()
-        //        setSubscriptions()
         bind(to: model)
     }
     
@@ -114,7 +122,6 @@ class LoginViewController: UIViewController {
             self.signInButton.isEnabled = output.isEnabled
         }).store(in: &subscriptions)
     }
-    
 }
 
 extension LoginViewController {
