@@ -15,11 +15,23 @@ struct LoginViewModelInput {
 }
 
 struct LoginViewModelOutput {
-    let emailTint: UIColor
-    let passwTint: UIColor
-    let passwAgainTint: UIColor
-    let emailFormatMessage: String
-    let isEnabled: Bool
+    var emailTint: UIColor
+    var passwTint: UIColor
+    var passwAgainTint: UIColor
+    var emailFormatMessage: String
+    var isEnabled: Bool
+
+    init(emailTint: UIColor = .systemGray2,
+         passwTint: UIColor = .systemGray2,
+         passwAgainTint: UIColor = .systemGray2,
+         emailFormatMessage: String = "",
+         isEnabled: Bool = false) {
+        self.emailTint = emailTint
+        self.passwTint = passwTint
+        self.passwAgainTint = passwAgainTint
+        self.emailFormatMessage = emailFormatMessage
+        self.isEnabled = isEnabled
+    }
 }
 
 protocol LoginViewModelType {
@@ -29,11 +41,7 @@ protocol LoginViewModelType {
 
 final class LoginViewModel: LoginViewModelType {
     
-    @Published private(set) var output: LoginViewModelOutput = .init(emailTint: .systemGray2,
-                                                                     passwTint: .systemGray2,
-                                                                     passwAgainTint: .systemGray2,
-                                                                     emailFormatMessage: "",
-                                                                     isEnabled: false)
+    @Published private(set) var output = LoginViewModelOutput()
     
     var outputPublisher: Published<LoginViewModelOutput>.Publisher { $output }
     
@@ -43,12 +51,6 @@ final class LoginViewModel: LoginViewModelType {
         subscriptions.forEach { $0.cancel() }
         subscriptions.removeAll()
         
-        var emailTint: UIColor = .systemGray2
-        var passwTint: UIColor = .systemGray2
-        var passwAgainTint: UIColor = .systemGray2
-        var emailFormatMessage: String = ""
-        var isEnabled: Bool = false
-        
         var isValid = false
         
         input.email
@@ -57,39 +59,25 @@ final class LoginViewModel: LoginViewModelType {
             .filter { !$0.isEmpty }
             .sink { [unowned self] text in
                 isValid = self.isValidEmail(text)
-                emailTint = isValid ? .systemGreen : .systemGray2
-                emailFormatMessage = isValid ? "" : "Incorrect email format"
-                self.output = LoginViewModelOutput(emailTint: emailTint,
-                                                   passwTint: passwTint,
-                                                   passwAgainTint: passwAgainTint,
-                                                   emailFormatMessage: emailFormatMessage,
-                                                   isEnabled: isEnabled)
+                output.emailTint = isValid ? .systemGreen : .systemGray2
+                output.emailFormatMessage = isValid ? "" : "Incorrect email format"
             }
             .store(in: &subscriptions)
         
-        input.email.combineLatest(input.pass, input.passAgain) { [unowned self] email, password, passwordAgain in
+        input.email.combineLatest(input.pass, input.passAgain) { [unowned self] (email, password, passwordAgain) -> Void in
             guard let email = email,
                   let password = password,
-                  let passwordAgain = passwordAgain else { return false }
+                  let passwordAgain = passwordAgain else { return }
             
             isValid = self.isValidEmail(email)
-            passwTint = password.count > 6 ? .systemGreen : .systemGray2
-            passwAgainTint = password.count > 6 && password == passwordAgain ? .systemGreen : .systemGray2
+            output.passwTint = password.count > 6 ? .systemGreen : .systemGray2
+            output.passwAgainTint = password.count > 6 && password == passwordAgain ? .systemGreen : .systemGray2
             
-            let isEnabled = isValid &&
+            output.isEnabled = isValid &&
             password.count > 6 &&
             password == passwordAgain
-            
-            self.output = LoginViewModelOutput(emailTint: emailTint,
-                                               passwTint: passwTint,
-                                               passwAgainTint: passwAgainTint,
-                                               emailFormatMessage: emailFormatMessage,
-                                               isEnabled: isEnabled)
-            return isEnabled
         }
-        .sink(receiveValue: { bool in
-            isEnabled = bool
-        })
+        .sink(receiveValue: { _ in })
         .store(in: &subscriptions)
     }
     
