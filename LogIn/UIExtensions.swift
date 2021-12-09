@@ -5,16 +5,13 @@
 //  Created by Aleksei Permiakov on 07.12.2021.
 //
 
-
 import UIKit
+import Combine
 
 extension UITextField {
-    func loginTextStyle() {
-        self.backgroundColor = .systemGray6
-        self.tintColor = .systemGray2
-        self.layer.cornerRadius = 16
-        self.clipsToBounds = true
-        self.autocapitalizationType = .none
+    var textPublisher: AnyPublisher<String?, Never> {
+        Publishers.ControlProperty(control: self, events: .defaultValueEvents, keyPath: \.text)
+                  .eraseToAnyPublisher()
     }
 }
 

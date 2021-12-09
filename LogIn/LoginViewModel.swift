@@ -9,9 +9,9 @@ import UIKit
 import Combine
 
 struct LoginViewModelInput {
-    let email: AnyPublisher<String, Never>
-    let pass: AnyPublisher<String, Never>
-    let passAgain: AnyPublisher<String, Never>
+    let email: AnyPublisher<String?, Never>
+    let pass: AnyPublisher<String?, Never>
+    let passAgain: AnyPublisher<String?, Never>
 }
 
 struct LoginViewModelOutput {
@@ -27,7 +27,7 @@ protocol LoginViewModelType {
     func transform(input: LoginViewModelInput)
 }
 
-class LoginViewModel: LoginViewModelType {
+final class LoginViewModel: LoginViewModelType {
     
     @Published private(set) var output: LoginViewModelOutput = .init(emailTint: .systemGray2,
                                                                      passwTint: .systemGray2,
@@ -52,7 +52,9 @@ class LoginViewModel: LoginViewModelType {
         var isValid = false
         
         input.email
-            .debounce(for: 1, scheduler: RunLoop.main)
+            .debounce(for: 0.5, scheduler: RunLoop.main)
+            .compactMap { $0 }
+            .filter { !$0.isEmpty }
             .sink { [unowned self] text in
                 isValid = self.isValidEmail(text)
                 emailTint = isValid ? .systemGreen : .systemGray2
@@ -62,11 +64,13 @@ class LoginViewModel: LoginViewModelType {
                                                    passwAgainTint: passwAgainTint,
                                                    emailFormatMessage: emailFormatMessage,
                                                    isEnabled: isEnabled)
-                
             }
             .store(in: &subscriptions)
         
         input.email.combineLatest(input.pass, input.passAgain) { [unowned self] email, password, passwordAgain in
+            guard let email = email,
+                  let password = password,
+                  let passwordAgain = passwordAgain else { return false }
             
             isValid = self.isValidEmail(email)
             passwTint = password.count > 6 ? .systemGreen : .systemGray2

@@ -8,14 +8,10 @@
 import UIKit
 import Combine
 
-class LoginViewController: UIViewController {
+final class LoginViewController: UIViewController {
     
     var model: LoginViewModelType
-    
-    private let email = PassthroughSubject<String, Never>()
-    private let pass = PassthroughSubject<String, Never>()
-    private let passAgain = PassthroughSubject<String, Never>()
-    
+
     private var subscriptions = Set<AnyCancellable>()
     
     private let label: UILabel = {
@@ -25,33 +21,30 @@ class LoginViewController: UIViewController {
         return label
     }()
     
-    private let emailTextField: UITextField = {
+    private lazy var emailTextField: UITextField = {
         let tf = UITextField()
-        tf.loginTextStyle()
+        applyLoginTextStyle(tf)
         tf.setIcon(UIImage(systemName: "envelope"))
         tf.placeholder = "Enter email"
         tf.keyboardType = .emailAddress
-        tf.addTarget(self, action: #selector(emailTextEntered), for: .editingChanged)
         return tf
     }()
     
-    private let passwordTextField: UITextField = {
+    private lazy var passwordTextField: UITextField = {
         let tf = UITextField()
-        tf.loginTextStyle()
+        applyLoginTextStyle(tf)
         tf.setIcon(UIImage(systemName: "key"))
         tf.placeholder = "Enter password"
         tf.isSecureTextEntry = true
-        tf.addTarget(self, action: #selector(passwordTextEntered), for: .editingChanged)
         return tf
     }()
     
-    private let passwordAgainTextField: UITextField = {
+    private lazy var passwordAgainTextField: UITextField = {
         let tf = UITextField()
-        tf.loginTextStyle()
+        applyLoginTextStyle(tf)
         tf.setIcon(UIImage(systemName: "key"))
         tf.placeholder = "Repeat password"
         tf.isSecureTextEntry = true
-        tf.addTarget(self, action: #selector(passwordAgainTextEntered), for: .editingChanged)
         return tf
     }()
     
@@ -84,33 +77,12 @@ class LoginViewController: UIViewController {
         bind(to: model)
     }
     
-    @objc
-    private func emailTextEntered() {
-        if let text = emailTextField.text {
-            email.send(text)
-        }
-    }
-    
-    @objc
-    private func passwordTextEntered() {
-        if let text = passwordTextField.text {
-            pass.send(text)
-        }
-    }
-    
-    @objc
-    private func passwordAgainTextEntered() {
-        if let text = passwordAgainTextField.text {
-            passAgain.send(text)
-        }
-    }
-    
     private func bind(to viewModel: LoginViewModelType) {
         subscriptions.forEach { $0.cancel() }
         subscriptions.removeAll()
-        let input = LoginViewModelInput(email: email.eraseToAnyPublisher(),
-                                        pass: pass.eraseToAnyPublisher(),
-                                        passAgain: passAgain.eraseToAnyPublisher())
+        let input = LoginViewModelInput(email: emailTextField.textPublisher.eraseToAnyPublisher(),
+                                        pass: passwordTextField.textPublisher.eraseToAnyPublisher(),
+                                        passAgain: passwordAgainTextField.textPublisher.eraseToAnyPublisher())
         
         viewModel.transform(input: input)
         
@@ -121,6 +93,14 @@ class LoginViewController: UIViewController {
             self.label.text = output.emailFormatMessage
             self.signInButton.isEnabled = output.isEnabled
         }).store(in: &subscriptions)
+    }
+    
+    private func applyLoginTextStyle(_ tf: UITextField) {
+        tf.backgroundColor = .systemGray6
+        tf.tintColor = .systemGray2
+        tf.layer.cornerRadius = 16
+        tf.clipsToBounds = true
+        tf.autocapitalizationType = .none
     }
 }
 
