@@ -9,14 +9,14 @@ import UIKit
 import Combine
 
 protocol LoginViewModelType {
-    var viewConstants: LoginViewPresentationObject { get }
+    var presentationObject: LoginViewPresentationObject { get }
     var outputPublisher: Published<LoginViewModelOutput>.Publisher { get }
     func transform(input: LoginViewModelInput)
 }
 
 final class LoginViewModel: LoginViewModelType {
     
-    let viewConstants = LoginViewPresentationObject()
+    let presentationObject = LoginViewPresentationObject()
     var outputPublisher: Published<LoginViewModelOutput>.Publisher { $output }
     
     @Published private var output = LoginViewModelOutput()

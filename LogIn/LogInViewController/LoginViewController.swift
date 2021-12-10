@@ -17,27 +17,27 @@ final class LoginViewController: UIViewController {
     private lazy var label: UILabel = {
         let label = UILabel()
         label.textAlignment = .center
-        label.textColor = model.viewConstants.labelTextColor
+        label.textColor = model.presentationObject.labelTextColor
         return label
     }()
     
     private lazy var emailTextField: UITextField = {
         let tf = UITextField()
-        configure(textfield: tf, with: model.viewConstants.emailTF)
+        configure(textfield: tf, with: model.presentationObject.emailTF)
         tf.keyboardType = .emailAddress
         return tf
     }()
     
     private lazy var passwordTextField: UITextField = {
         let tf = UITextField()
-        configure(textfield: tf, with: model.viewConstants.passwordTF)
+        configure(textfield: tf, with: model.presentationObject.passwordTF)
         tf.isSecureTextEntry = true
         return tf
     }()
     
     private lazy var passwordAgainTextField: UITextField = {
         let tf = UITextField()
-        configure(textfield: tf, with: model.viewConstants.passwordAgainTF)
+        configure(textfield: tf, with: model.presentationObject.passwordAgainTF)
         tf.isSecureTextEntry = true
         return tf
     }()
@@ -106,7 +106,7 @@ final class LoginViewController: UIViewController {
 
 extension LoginViewController {
     private func setupViews() {
-        view.backgroundColor = model.viewConstants.backgroundColor
+        view.backgroundColor = model.presentationObject.backgroundColor
         
         let subviews = [label,
                         emailTextField,
