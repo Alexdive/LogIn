@@ -11,39 +11,33 @@ import Combine
 final class LoginViewController: UIViewController {
     
     var model: LoginViewModelType
-
+    
     private var subscriptions = Set<AnyCancellable>()
     
-    private let label: UILabel = {
+    private lazy var label: UILabel = {
         let label = UILabel()
         label.textAlignment = .center
-        label.textColor = .systemRed
+        label.textColor = model.viewConstants.labelTextColor
         return label
     }()
     
     private lazy var emailTextField: UITextField = {
         let tf = UITextField()
-        applyLoginTextStyle(tf)
-        tf.setIcon(UIImage(systemName: "envelope"))
-        tf.placeholder = "Enter email"
+        configure(textfield: tf, with: model.viewConstants.emailTF)
         tf.keyboardType = .emailAddress
         return tf
     }()
     
     private lazy var passwordTextField: UITextField = {
         let tf = UITextField()
-        applyLoginTextStyle(tf)
-        tf.setIcon(UIImage(systemName: "key"))
-        tf.placeholder = "Enter password"
+        configure(textfield: tf, with: model.viewConstants.passwordTF)
         tf.isSecureTextEntry = true
         return tf
     }()
     
     private lazy var passwordAgainTextField: UITextField = {
         let tf = UITextField()
-        applyLoginTextStyle(tf)
-        tf.setIcon(UIImage(systemName: "key"))
-        tf.placeholder = "Repeat password"
+        configure(textfield: tf, with: model.viewConstants.passwordAgainTF)
         tf.isSecureTextEntry = true
         return tf
     }()
@@ -80,9 +74,9 @@ final class LoginViewController: UIViewController {
     private func bind(to viewModel: LoginViewModelType) {
         subscriptions.forEach { $0.cancel() }
         subscriptions.removeAll()
-        let input = LoginViewModelInput(email: emailTextField.textPublisher.eraseToAnyPublisher(),
-                                        pass: passwordTextField.textPublisher.eraseToAnyPublisher(),
-                                        passAgain: passwordAgainTextField.textPublisher.eraseToAnyPublisher())
+        let input = LoginViewModelInput(email: emailTextField.textPublisher,
+                                        pass: passwordTextField.textPublisher,
+                                        passAgain: passwordAgainTextField.textPublisher)
         
         viewModel.transform(input: input)
         
@@ -95,18 +89,24 @@ final class LoginViewController: UIViewController {
         }).store(in: &subscriptions)
     }
     
-    private func applyLoginTextStyle(_ tf: UITextField) {
-        tf.backgroundColor = .systemGray6
-        tf.tintColor = .systemGray2
-        tf.layer.cornerRadius = 16
-        tf.clipsToBounds = true
-        tf.autocapitalizationType = .none
+    private func configure(textfield: UITextField, with textFieldConfig: TextFieldConfig) {
+        textfield.placeholder = textFieldConfig.placeholder
+        textfield.setIcon(UIImage(systemName: textFieldConfig.imageName))
+        textfield.backgroundColor = textFieldConfig.backgroundColor
+        textfield.tintColor = textFieldConfig.tintColor
+        applyLoginTextStyle(textfield)
+    }
+    
+    private func applyLoginTextStyle(_ textfield: UITextField) {
+        textfield.layer.cornerRadius = 16
+        textfield.clipsToBounds = true
+        textfield.autocapitalizationType = .none
     }
 }
 
 extension LoginViewController {
     private func setupViews() {
-        view.backgroundColor = .white
+        view.backgroundColor = model.viewConstants.backgroundColor
         
         let subviews = [label,
                         emailTextField,

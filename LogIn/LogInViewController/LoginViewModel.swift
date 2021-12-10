@@ -8,43 +8,18 @@
 import UIKit
 import Combine
 
-struct LoginViewModelInput {
-    let email: AnyPublisher<String?, Never>
-    let pass: AnyPublisher<String?, Never>
-    let passAgain: AnyPublisher<String?, Never>
-}
-
-struct LoginViewModelOutput {
-    var emailTint: UIColor
-    var passwTint: UIColor
-    var passwAgainTint: UIColor
-    var emailFormatMessage: String
-    var isEnabled: Bool
-
-    init(emailTint: UIColor = .systemGray2,
-         passwTint: UIColor = .systemGray2,
-         passwAgainTint: UIColor = .systemGray2,
-         emailFormatMessage: String = "",
-         isEnabled: Bool = false) {
-        self.emailTint = emailTint
-        self.passwTint = passwTint
-        self.passwAgainTint = passwAgainTint
-        self.emailFormatMessage = emailFormatMessage
-        self.isEnabled = isEnabled
-    }
-}
-
 protocol LoginViewModelType {
+    var viewConstants: LoginViewPresentationObject { get }
     var outputPublisher: Published<LoginViewModelOutput>.Publisher { get }
     func transform(input: LoginViewModelInput)
 }
 
 final class LoginViewModel: LoginViewModelType {
     
-    @Published private(set) var output = LoginViewModelOutput()
-    
+    let viewConstants = LoginViewPresentationObject()
     var outputPublisher: Published<LoginViewModelOutput>.Publisher { $output }
     
+    @Published private var output = LoginViewModelOutput()
     private var subscriptions = Set<AnyCancellable>()
     
     func transform(input: LoginViewModelInput) {
