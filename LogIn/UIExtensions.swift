@@ -6,22 +6,27 @@
 //
 
 import UIKit
+import Combine
 
 extension UITextField {
-    func loginTextStyle() {
-        self.backgroundColor = .systemGray6
-        self.tintColor = .systemGray2
-        self.layer.cornerRadius = 10
-        self.clipsToBounds = true
-        let font = UIFont.systemFont(ofSize: 20)
-        let paragraphStyle = NSMutableParagraphStyle()
-        paragraphStyle.alignment = .center
-        let attributes: [NSAttributedString.Key: Any] = [
-            .kern: 1.6,
-            .font: font,
-            .foregroundColor: UIColor.darkGray,
-            .paragraphStyle: paragraphStyle]
-        self.defaultTextAttributes = attributes
+    var textPublisher: AnyPublisher<String?, Never> {
+        Publishers.ControlProperty(control: self, events: .defaultValueEvents, keyPath: \.text)
+                  .eraseToAnyPublisher()
+    }
+}
+
+extension UITextField {
+    func setIcon(_ image: UIImage?) {
+        guard let image = image else { return }
+        let iconView = UIImageView(frame:
+                                    CGRect(x: 10, y: 5, width: 20, height: 20))
+        iconView.image = image
+        iconView.contentMode = .scaleAspectFit
+        let iconContainerView: UIView = UIView(frame:
+                                                CGRect(x: 20, y: 0, width: 40, height: 30))
+        iconContainerView.addSubview(iconView)
+        leftView = iconContainerView
+        leftViewMode = .always
     }
 }
 
