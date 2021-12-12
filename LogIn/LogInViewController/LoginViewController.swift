@@ -8,50 +8,37 @@
 import UIKit
 import Combine
 
-class LoginViewController: UIViewController {
+final class LoginViewController: UIViewController {
     
     var model: LoginViewModelType
     
-    private let email = PassthroughSubject<String, Never>()
-    private let pass = PassthroughSubject<String, Never>()
-    private let passAgain = PassthroughSubject<String, Never>()
-    
     private var subscriptions = Set<AnyCancellable>()
     
-    private let label: UILabel = {
+    private lazy var label: UILabel = {
         let label = UILabel()
         label.textAlignment = .center
-        label.textColor = .systemRed
+        label.textColor = model.presentationObject.labelTextColor
         return label
     }()
     
-    private let emailTextField: UITextField = {
+    private lazy var emailTextField: UITextField = {
         let tf = UITextField()
-        tf.loginTextStyle()
-        tf.setIcon(UIImage(systemName: "envelope"))
-        tf.placeholder = "Enter email"
+        configure(textfield: tf, with: model.presentationObject.emailTF)
         tf.keyboardType = .emailAddress
-        tf.addTarget(self, action: #selector(emailTextEntered), for: .editingChanged)
         return tf
     }()
     
-    private let passwordTextField: UITextField = {
+    private lazy var passwordTextField: UITextField = {
         let tf = UITextField()
-        tf.loginTextStyle()
-        tf.setIcon(UIImage(systemName: "key"))
-        tf.placeholder = "Enter password"
+        configure(textfield: tf, with: model.presentationObject.passwordTF)
         tf.isSecureTextEntry = true
-        tf.addTarget(self, action: #selector(passwordTextEntered), for: .editingChanged)
         return tf
     }()
     
-    private let passwordAgainTextField: UITextField = {
+    private lazy var passwordAgainTextField: UITextField = {
         let tf = UITextField()
-        tf.loginTextStyle()
-        tf.setIcon(UIImage(systemName: "key"))
-        tf.placeholder = "Repeat password"
+        configure(textfield: tf, with: model.presentationObject.passwordAgainTF)
         tf.isSecureTextEntry = true
-        tf.addTarget(self, action: #selector(passwordAgainTextEntered), for: .editingChanged)
         return tf
     }()
     
@@ -84,33 +71,12 @@ class LoginViewController: UIViewController {
         bind(to: model)
     }
     
-    @objc
-    private func emailTextEntered() {
-        if let text = emailTextField.text {
-            email.send(text)
-        }
-    }
-    
-    @objc
-    private func passwordTextEntered() {
-        if let text = passwordTextField.text {
-            pass.send(text)
-        }
-    }
-    
-    @objc
-    private func passwordAgainTextEntered() {
-        if let text = passwordAgainTextField.text {
-            passAgain.send(text)
-        }
-    }
-    
     private func bind(to viewModel: LoginViewModelType) {
         subscriptions.forEach { $0.cancel() }
         subscriptions.removeAll()
-        let input = LoginViewModelInput(email: email.eraseToAnyPublisher(),
-                                        pass: pass.eraseToAnyPublisher(),
-                                        passAgain: passAgain.eraseToAnyPublisher())
+        let input = LoginViewModelInput(email: emailTextField.textPublisher,
+                                        pass: passwordTextField.textPublisher,
+                                        passAgain: passwordAgainTextField.textPublisher)
         
         viewModel.transform(input: input)
         
@@ -122,11 +88,25 @@ class LoginViewController: UIViewController {
             self.signInButton.isEnabled = output.isEnabled
         }).store(in: &subscriptions)
     }
+    
+    private func configure(textfield: UITextField, with textFieldConfig: TextFieldConfig) {
+        textfield.placeholder = textFieldConfig.placeholder
+        textfield.setIcon(UIImage(systemName: textFieldConfig.imageName))
+        textfield.backgroundColor = textFieldConfig.backgroundColor
+        textfield.tintColor = textFieldConfig.tintColor
+        applyLoginTextStyle(textfield)
+    }
+    
+    private func applyLoginTextStyle(_ textfield: UITextField) {
+        textfield.layer.cornerRadius = 16
+        textfield.clipsToBounds = true
+        textfield.autocapitalizationType = .none
+    }
 }
 
 extension LoginViewController {
     private func setupViews() {
-        view.backgroundColor = .white
+        view.backgroundColor = model.presentationObject.backgroundColor
         
         let subviews = [label,
                         emailTextField,
