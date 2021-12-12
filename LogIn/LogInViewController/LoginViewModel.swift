@@ -17,8 +17,6 @@ struct LoginViewModel: LoginViewModelType {
     let presentationObject = LoginViewPresentationObject()
     
     func transform(input: LoginViewModelInput) -> AnyPublisher<LoginViewModelOutput, Never> {
-        
-        
         let email = input.email
             .debounce(for: 0.5, scheduler: RunLoop.main)
             .removeDuplicates()
