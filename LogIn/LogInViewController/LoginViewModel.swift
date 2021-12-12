@@ -10,50 +10,47 @@ import Combine
 
 protocol LoginViewModelType {
     var presentationObject: LoginViewPresentationObject { get }
-    var outputPublisher: Published<LoginViewModelOutput>.Publisher { get }
-    func transform(input: LoginViewModelInput)
+    func transform(input: LoginViewModelInput) -> AnyPublisher<LoginViewModelOutput, Never>
 }
 
-final class LoginViewModel: LoginViewModelType {
-    
+struct LoginViewModel: LoginViewModelType {
     let presentationObject = LoginViewPresentationObject()
-    var outputPublisher: Published<LoginViewModelOutput>.Publisher { $output }
     
-    @Published private var output = LoginViewModelOutput()
-    private var subscriptions = Set<AnyCancellable>()
-    
-    func transform(input: LoginViewModelInput) {
-        subscriptions.forEach { $0.cancel() }
-        subscriptions.removeAll()
+    func transform(input: LoginViewModelInput) -> AnyPublisher<LoginViewModelOutput, Never> {
         
-        var isValid = false
         
-        input.email
+        let email = input.email
             .debounce(for: 0.5, scheduler: RunLoop.main)
+            .removeDuplicates()
             .compactMap { $0 }
             .filter { !$0.isEmpty }
-            .sink { [unowned self] text in
-                isValid = self.isValidEmail(text)
-                output.emailTint = isValid ? .systemGreen : .systemGray2
-                output.emailFormatMessage = isValid ? "" : "Incorrect email format"
-            }
-            .store(in: &subscriptions)
+            .eraseToAnyPublisher()
         
-        input.email.combineLatest(input.pass, input.passAgain) { [unowned self] (email, password, passwordAgain) -> Void in
-            guard let email = email,
-                  let password = password,
-                  let passwordAgain = passwordAgain else { return }
-            
-            isValid = self.isValidEmail(email)
-            output.passwTint = password.count > 6 ? .systemGreen : .systemGray2
-            output.passwAgainTint = password.count > 6 && password == passwordAgain ? .systemGreen : .systemGray2
-            
-            output.isEnabled = isValid &&
-            password.count > 6 &&
-            password == passwordAgain
-        }
-        .sink(receiveValue: { _ in })
-        .store(in: &subscriptions)
+        let password = input.pass
+            .removeDuplicates()
+            .compactMap { $0 }
+            .eraseToAnyPublisher()
+        
+        let passwordAgain = input.passAgain
+            .removeDuplicates()
+            .compactMap { $0 }
+            .eraseToAnyPublisher()
+        
+        return email
+            .combineLatest(password, passwordAgain)
+            .map {
+                (isValidEmail($0),
+                 $1.count > 6,
+                 $1 == $2)
+            }
+            .map {
+                LoginViewModelOutput(emailTint: $0 ? .systemGreen : .systemGray2,
+                                     passwTint: $1 ? .systemGreen : .systemGray2,
+                                     passwAgainTint: $1 && $2 ? .systemGreen : .systemGray2,
+                                     emailErrorText: $0 ? "" : "Incorrect email format",
+                                     isEnabled: $0 && $1 && $2)
+            }
+            .eraseToAnyPublisher()
     }
     
     private func isValidEmail(_ email: String) -> Bool {

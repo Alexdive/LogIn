@@ -79,14 +79,14 @@ final class LoginViewController: UIViewController {
                                         passAgain: passwordAgainTextField.textPublisher)
         
         viewModel.transform(input: input)
-        
-        viewModel.outputPublisher.sink(receiveValue: {[unowned self] output in
-            self.emailTextField.tintColor = output.emailTint
-            self.passwordTextField.tintColor = output.passwTint
-            self.passwordAgainTextField.tintColor = output.passwAgainTint
-            self.label.text = output.emailFormatMessage
-            self.signInButton.isEnabled = output.isEnabled
-        }).store(in: &subscriptions)
+            .sink(receiveValue: {[unowned self] output in
+                self.emailTextField.leftView?.tintColor = output.emailTint
+                self.passwordTextField.leftView?.tintColor = output.passwTint
+                self.passwordAgainTextField.leftView?.tintColor = output.passwAgainTint
+                self.label.text = output.emailErrorText
+                self.signInButton.isEnabled = output.isEnabled
+            })
+            .store(in: &subscriptions)
     }
     
     private func configure(textfield: UITextField, with textFieldConfig: TextFieldConfig) {

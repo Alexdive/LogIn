@@ -42,18 +42,6 @@ struct LoginViewModelOutput {
     var emailTint: UIColor
     var passwTint: UIColor
     var passwAgainTint: UIColor
-    var emailFormatMessage: String
+    var emailErrorText: String
     var isEnabled: Bool
-    
-    init(emailTint: UIColor = .systemGray2,
-         passwTint: UIColor = .systemGray2,
-         passwAgainTint: UIColor = .systemGray2,
-         emailFormatMessage: String = "",
-         isEnabled: Bool = false) {
-        self.emailTint = emailTint
-        self.passwTint = passwTint
-        self.passwAgainTint = passwAgainTint
-        self.emailFormatMessage = emailFormatMessage
-        self.isEnabled = isEnabled
-    }
 }
