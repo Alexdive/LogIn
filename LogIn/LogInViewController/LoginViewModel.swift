@@ -22,31 +22,32 @@ struct LoginViewModel: LoginViewModelType {
             .removeDuplicates()
             .compactMap { $0 }
             .filter { !$0.isEmpty }
-            .eraseToAnyPublisher()
         
         let password = input.pass
             .removeDuplicates()
             .compactMap { $0 }
-            .eraseToAnyPublisher()
         
         let passwordAgain = input.passAgain
             .removeDuplicates()
             .compactMap { $0 }
-            .eraseToAnyPublisher()
         
-        return email
-            .combineLatest(password, passwordAgain)
-            .map {
-                (isValidEmail($0),
-                 $1.count > 6,
-                 $1 == $2)
-            }
-            .map {
-                LoginViewModelOutput(emailTint: $0 ? .systemGreen : .systemGray2,
-                                     passwTint: $1 ? .systemGreen : .systemGray2,
-                                     passwAgainTint: $1 && $2 ? .systemGreen : .systemGray2,
-                                     emailErrorText: $0 ? "" : "Incorrect email format",
-                                     isEnabled: $0 && $1 && $2)
+        let isValidEmail = email
+            .map { self.isValidEmail($0) }
+        
+        let isValidPassword = password
+            .map { $0.count > 6 }
+        
+        let isSamePassword = password.combineLatest(passwordAgain)
+            .map { $0 == $1 }
+        
+        return isValidEmail
+            .combineLatest(isValidPassword, isSamePassword)
+            .map { isValidEmail, isValidPassword, isSamePassword in
+                LoginViewModelOutput(emailTint: isValidEmail ? .systemGreen : .systemGray2,
+                                     passwTint: isValidPassword ? .systemGreen : .systemGray2,
+                                     passwAgainTint: isValidPassword && isSamePassword ? .systemGreen : .systemGray2,
+                                     emailErrorText: isValidEmail ? "" : "Incorrect email format",
+                                     isEnabled: isValidEmail && isValidPassword && isSamePassword)
             }
             .eraseToAnyPublisher()
     }
