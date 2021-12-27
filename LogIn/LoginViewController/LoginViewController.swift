@@ -54,7 +54,7 @@ final class LoginViewController: UIViewController {
         return view
     }()
     
-    private lazy var loginLabel: UILabel = {
+    private lazy var headerLabel: UILabel = {
         let label = UILabel()
         label.textAlignment = .center
         configure(label: label, with: model.presentationObject.loginLabel)
@@ -84,7 +84,7 @@ final class LoginViewController: UIViewController {
         return tf
     }()
     
-    private lazy var logInButton: UIButton = {
+    private lazy var loginButton: UIButton = {
         let button = UIButton()
         button.layer.cornerRadius = model.presentationObject.cornerRadius
         addShadowTo(button)
@@ -127,7 +127,7 @@ final class LoginViewController: UIViewController {
         return button
     }()
     
-    private lazy var shadowView: UIView = {
+    private lazy var loginShadowView: UIView = {
         let view = UIView()
         view.backgroundColor = .systemIndigo
         view.layer.cornerRadius = 22
@@ -135,7 +135,7 @@ final class LoginViewController: UIViewController {
         return view
     }()
     
-    private lazy var shadowView2: UIView = {
+    private lazy var signUpShadowView: UIView = {
         let view = UIView()
         view.backgroundColor = .systemIndigo
         view.layer.cornerRadius = 22
@@ -172,7 +172,7 @@ final class LoginViewController: UIViewController {
                 self.passwordTextField.leftView?.tintColor = output.passwTint
                 self.passwordAgainTextField.leftView?.tintColor = output.passwAgainTint
                 self.signUpButton.isEnabled = output.signUpEnabled
-                self.logInButton.isEnabled = output.loginEnabled
+                self.loginButton.isEnabled = output.loginEnabled
             })
             .store(in: &subscriptions)
     }
@@ -232,7 +232,7 @@ extension LoginViewController {
     private func switchToLoginWithAnimation() {
         UIView.animate(withDuration: 0.6, delay: 0, options: [.curveEaseInOut]) {
             self.signUpButton.transform = .identity
-            self.shadowView2.transform = .identity
+            self.signUpShadowView.transform = .identity
             
             self.needAccountButton.alpha = 0
             self.passwordAgainTextField.alpha = 0
@@ -244,17 +244,17 @@ extension LoginViewController {
         }
         
         forgotPasswordButton.isHidden = false
-        logInButton.isHidden = false
-        shadowView.isHidden = false
+        loginButton.isHidden = false
+        loginShadowView.isHidden = false
         self.needAccountButton.isEnabled = false
         
         UIView.animate(withDuration: 0.6, delay: 0.5) {
-            self.logInButton.transform = .identity
-            self.shadowView.transform = .identity
+            self.loginButton.transform = .identity
+            self.loginShadowView.transform = .identity
             
             self.forgotPasswordButton.alpha = 1
-            self.logInButton.alpha = 1
-            self.shadowView.alpha = 1
+            self.loginButton.alpha = 1
+            self.loginShadowView.alpha = 1
             self.needAccountButton.alpha = 1
         }
     }
@@ -264,24 +264,24 @@ extension LoginViewController {
         self.signUpButton.isEnabled = false
         
         let passwBottom = passwordTextField.frame.maxY
-        let loginTop = logInButton.frame.minY
+        let loginTop = loginButton.frame.minY
         let loginShift = loginTop - passwBottom - 16
         
         UIView.animate(withDuration: 0.6, delay: 0, options: [.curveEaseInOut]) {
             let attributedTitle = self.makeAttributedString(with: self.model.presentationObject.haveAccountText)
             self.needAccountButton.setAttributedTitle(attributedTitle, for: .normal)
             
-            self.logInButton.transform = CGAffineTransform(translationX: 0, y: -loginShift)
-            self.shadowView.transform = CGAffineTransform(translationX: 0, y: -loginShift)
+            self.loginButton.transform = CGAffineTransform(translationX: 0, y: -loginShift)
+            self.loginShadowView.transform = CGAffineTransform(translationX: 0, y: -loginShift)
             
             self.forgotPasswordButton.alpha = 0
-            self.logInButton.alpha = 0
-            self.shadowView.alpha = 0
+            self.loginButton.alpha = 0
+            self.loginShadowView.alpha = 0
             self.needAccountButton.alpha = 0
         } completion: { _ in
             self.forgotPasswordButton.isHidden = true
-            self.logInButton.isHidden = true
-            self.shadowView.isHidden = true
+            self.loginButton.isHidden = true
+            self.loginShadowView.isHidden = true
             self.needAccountButton.isEnabled = true
         }
         
@@ -295,7 +295,7 @@ extension LoginViewController {
         
         UIView.animate(withDuration: 0.5, delay: 0.2, options: [.curveEaseInOut]) {
             self.signUpButton.transform = CGAffineTransform(translationX: 0, y: -signUpshift)
-            self.shadowView2.transform = CGAffineTransform(translationX: 0, y: -signUpshift)
+            self.signUpShadowView.transform = CGAffineTransform(translationX: 0, y: -signUpshift)
             self.needAccountButton.alpha = 1
         }
     }
@@ -307,15 +307,15 @@ extension LoginViewController {
         let subviews = [
             backGradientView,
             backView,
-            loginLabel,
+            headerLabel,
             emailTextField,
             passwordTextField,
             passwordAgainTextField,
-            shadowView,
-            logInButton,
+            loginShadowView,
+            loginButton,
             forgotPasswordButton,
             needAccountButton,
-            shadowView2,
+            signUpShadowView,
             signUpButton
         ]
         subviews.forEach {
@@ -334,10 +334,10 @@ extension LoginViewController {
             backView.trailingAnchor.constraint(equalTo: view.trailingAnchor),
             backView.heightAnchor.constraint(equalToConstant: view.frame.height * 0.8),
             
-            loginLabel.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor, constant: 48),
-            loginLabel.centerXAnchor.constraint(equalTo: view.centerXAnchor),
+            headerLabel.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor, constant: 48),
+            headerLabel.centerXAnchor.constraint(equalTo: view.centerXAnchor),
             
-            emailTextField.topAnchor.constraint(equalTo: loginLabel.bottomAnchor, constant: 48),
+            emailTextField.topAnchor.constraint(equalTo: headerLabel.bottomAnchor, constant: 48),
             emailTextField.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 60),
             emailTextField.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -60),
             emailTextField.heightAnchor.constraint(equalToConstant: 44),
@@ -352,26 +352,26 @@ extension LoginViewController {
             passwordAgainTextField.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -60),
             passwordAgainTextField.heightAnchor.constraint(equalToConstant: 44),
             
-            shadowView.topAnchor.constraint(equalTo: passwordTextField.bottomAnchor, constant: 44),
-            shadowView.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 60),
-            shadowView.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -60),
-            shadowView.heightAnchor.constraint(equalToConstant: 44),
+            loginShadowView.topAnchor.constraint(equalTo: passwordTextField.bottomAnchor, constant: 44),
+            loginShadowView.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 60),
+            loginShadowView.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -60),
+            loginShadowView.heightAnchor.constraint(equalToConstant: 44),
             
-            logInButton.topAnchor.constraint(equalTo: passwordTextField.bottomAnchor, constant: 44),
-            logInButton.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 60),
-            logInButton.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -60),
-            logInButton.heightAnchor.constraint(equalToConstant: 44),
+            loginButton.topAnchor.constraint(equalTo: passwordTextField.bottomAnchor, constant: 44),
+            loginButton.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 60),
+            loginButton.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -60),
+            loginButton.heightAnchor.constraint(equalToConstant: 44),
             
-            forgotPasswordButton.topAnchor.constraint(equalTo: logInButton.bottomAnchor, constant: 20),
+            forgotPasswordButton.topAnchor.constraint(equalTo: loginButton.bottomAnchor, constant: 20),
             forgotPasswordButton.centerXAnchor.constraint(equalTo: view.centerXAnchor),
             
             needAccountButton.bottomAnchor.constraint(equalTo: signUpButton.topAnchor, constant: -20),
             needAccountButton.centerXAnchor.constraint(equalTo: view.centerXAnchor),
             
-            shadowView2.bottomAnchor.constraint(equalTo: view.safeAreaLayoutGuide.bottomAnchor, constant: -44),
-            shadowView2.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 60),
-            shadowView2.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -60),
-            shadowView2.heightAnchor.constraint(equalToConstant: 44),
+            signUpShadowView.bottomAnchor.constraint(equalTo: view.safeAreaLayoutGuide.bottomAnchor, constant: -44),
+            signUpShadowView.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 60),
+            signUpShadowView.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -60),
+            signUpShadowView.heightAnchor.constraint(equalToConstant: 44),
             
             signUpButton.bottomAnchor.constraint(equalTo: view.safeAreaLayoutGuide.bottomAnchor, constant: -44),
             signUpButton.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 60),
