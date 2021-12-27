@@ -6,6 +6,20 @@
 //
 
 import UIKit
+import Combine
+
+struct TextFieldConfig {
+    let placeholder: String
+    let imageName: String
+    let backgroundColor: UIColor
+    let tintColor: UIColor
+}
+
+struct TextConfig {
+    let text: String
+    let textColor: UIColor
+    let font: UIFont
+}
 
 struct LoginViewPresentationObject {
     let emailTF = TextFieldConfig(placeholder: "yourmail@gmail.com",
@@ -27,9 +41,13 @@ struct LoginViewPresentationObject {
                                  textColor: .white,
                                  font: AppConstants.Fonts.avenirNext30)
     
-    let needAccountLabel = TextConfig(text: "Need an account?",
+    let needAccountText = TextConfig(text: "Need an account?",
                                        textColor: .systemGray2,
                                        font: AppConstants.Fonts.avenirNext18)
+    
+    let haveAccountText = TextConfig(text: "I have an account!",
+                                     textColor: .systemGray2,
+                                     font: AppConstants.Fonts.avenirNext18)
     
     let loginButton = TextConfig(text: "Login",
                                  textColor: .white,
@@ -49,4 +67,20 @@ struct LoginViewPresentationObject {
     
     let backgroundColor: UIColor = .white
     let cornerRadius: CGFloat = 22
+}
+
+
+struct LoginViewModelInput {
+    let email: AnyPublisher<String?, Never>
+    let pass: AnyPublisher<String?, Never>
+    let passAgain: AnyPublisher<String?, Never>
+    let loginState: AnyPublisher<LoginState, Never>
+}
+
+struct LoginViewModelOutput {
+    var emailTint: UIColor
+    var passwTint: UIColor
+    var passwAgainTint: UIColor
+    var loginEnabled: Bool
+    var signUpEnabled: Bool
 }
