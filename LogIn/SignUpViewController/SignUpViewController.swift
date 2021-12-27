@@ -1,5 +1,5 @@
 //
-//  LoginViewController.swift
+//  SignUpViewController.swift
 //  LogIn
 //
 //  Created by Aleksei Permiakov on 07.12.2021.
@@ -8,9 +8,9 @@
 import UIKit
 import Combine
 
-final class LoginViewController: UIViewController {
+final class SignUpViewController: UIViewController {
     
-    var model: LoginViewModelType
+    var model: SignUpViewModelType
     
     private var subscriptions = Set<AnyCancellable>()
     
@@ -55,7 +55,7 @@ final class LoginViewController: UIViewController {
         return button
     }()
     
-    init(model: LoginViewModelType) {
+    init(model: SignUpViewModelType) {
         self.model = model
         super.init(nibName: nil, bundle: nil)
     }
@@ -71,10 +71,10 @@ final class LoginViewController: UIViewController {
         bind(to: model)
     }
     
-    private func bind(to viewModel: LoginViewModelType) {
+    private func bind(to viewModel: SignUpViewModelType) {
         subscriptions.forEach { $0.cancel() }
         subscriptions.removeAll()
-        let input = LoginViewModelInput(email: emailTextField.textPublisher,
+        let input = SignUpViewModelInput(email: emailTextField.textPublisher,
                                         pass: passwordTextField.textPublisher,
                                         passAgain: passwordAgainTextField.textPublisher)
         
@@ -94,17 +94,17 @@ final class LoginViewController: UIViewController {
         textfield.setIcon(UIImage(systemName: textFieldConfig.imageName))
         textfield.backgroundColor = textFieldConfig.backgroundColor
         textfield.tintColor = textFieldConfig.tintColor
-        applyLoginTextStyle(textfield)
+        applyTextStyle(textfield)
     }
     
-    private func applyLoginTextStyle(_ textfield: UITextField) {
+    private func applyTextStyle(_ textfield: UITextField) {
         textfield.layer.cornerRadius = 16
         textfield.clipsToBounds = true
         textfield.autocapitalizationType = .none
     }
 }
 
-extension LoginViewController {
+extension SignUpViewController {
     private func setupViews() {
         view.backgroundColor = model.presentationObject.backgroundColor
         

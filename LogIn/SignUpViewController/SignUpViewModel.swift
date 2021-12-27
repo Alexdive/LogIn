@@ -1,5 +1,5 @@
 //
-//  LoginViewModel.swift
+//  SignUpViewModel.swift
 //  LogIn
 //
 //  Created by Aleksei Permiakov on 08.12.2021.
@@ -8,15 +8,15 @@
 import UIKit
 import Combine
 
-protocol LoginViewModelType {
-    var presentationObject: LoginViewPresentationObject { get }
-    func transform(input: LoginViewModelInput) -> AnyPublisher<LoginViewModelOutput, Never>
+protocol SignUpViewModelType {
+    var presentationObject: SignUpViewPresentationObject { get }
+    func transform(input: SignUpViewModelInput) -> AnyPublisher<SignUpViewModelOutput, Never>
 }
 
-struct LoginViewModel: LoginViewModelType {
-    let presentationObject = LoginViewPresentationObject()
+struct SignUpViewModel: SignUpViewModelType {
+    let presentationObject = SignUpViewPresentationObject()
     
-    func transform(input: LoginViewModelInput) -> AnyPublisher<LoginViewModelOutput, Never> {
+    func transform(input: SignUpViewModelInput) -> AnyPublisher<SignUpViewModelOutput, Never> {
         let email = input.email
             .debounce(for: 0.5, scheduler: RunLoop.main)
             .removeDuplicates()
@@ -43,7 +43,7 @@ struct LoginViewModel: LoginViewModelType {
         return isValidEmail
             .combineLatest(isValidPassword, isSamePassword)
             .map { isValidEmail, isValidPassword, isSamePassword in
-                LoginViewModelOutput(emailTint: isValidEmail ? .systemGreen : .systemGray2,
+                SignUpViewModelOutput(emailTint: isValidEmail ? .systemGreen : .systemGray2,
                                      passwTint: isValidPassword ? .systemGreen : .systemGray2,
                                      passwAgainTint: isValidPassword && isSamePassword ? .systemGreen : .systemGray2,
                                      emailErrorText: isValidEmail ? "" : "Incorrect email format",

@@ -1,5 +1,5 @@
 //
-//  Models.swift
+//  SignUpModels.swift
 //  LogIn
 //
 //  Created by Aleksei Permiakov on 10.12.2021.
@@ -15,7 +15,13 @@ struct TextFieldConfig {
     let tintColor: UIColor
 }
 
-struct LoginViewPresentationObject {
+struct TextConfig {
+    let text: String
+    let textColor: UIColor
+    let font: UIFont
+}
+
+struct SignUpViewPresentationObject {
     let emailTF = TextFieldConfig(placeholder: "Enter email",
                                 imageName: "envelope",
                                 backgroundColor: .systemGray6,
@@ -32,13 +38,13 @@ struct LoginViewPresentationObject {
     let backgroundColor: UIColor = .white
 }
 
-struct LoginViewModelInput {
+struct SignUpViewModelInput {
     let email: AnyPublisher<String?, Never>
     let pass: AnyPublisher<String?, Never>
     let passAgain: AnyPublisher<String?, Never>
 }
 
-struct LoginViewModelOutput {
+struct SignUpViewModelOutput {
     var emailTint: UIColor
     var passwTint: UIColor
     var passwAgainTint: UIColor
