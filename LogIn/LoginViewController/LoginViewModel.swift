@@ -14,12 +14,26 @@ protocol LoginViewModelType {
     func onLoginTap()
 }
 
-struct LoginViewModel: LoginViewModelType {
+class LoginViewModel: LoginViewModelType {
     
+    var loginState: LoginState = .login {
+        didSet {
+            if loginState == .login {
+                
+            } else {
+                
+            }
+        }
+    }
+    var canc = Set<AnyCancellable>()
     let presentationObject = LoginViewPresentationObject()
-    
+   
     func onLoginTap() {
         print("Log in")
+    }
+    
+    func onSignUpTap() {
+        print("sign up")
     }
     
     func transform(input: LoginViewModelInput) -> AnyPublisher<LoginViewModelOutput, Never> {
@@ -37,8 +51,14 @@ struct LoginViewModel: LoginViewModelType {
             .removeDuplicates()
             .compactMap { $0 }
         
-        let loginState = input.loginState
-            .map { $0 }
+        let signupTap = input.signUpTap
+            .sink { self.onSignUpTap() }
+            .store(in: &canc)
+        
+        
+        let loginTap = input.loginTap
+            .sink { self.onLoginTap() }
+            .store(in: &canc)
         
         let isValidEmail = email
             .map { self.isValidEmail($0) }
@@ -49,12 +69,12 @@ struct LoginViewModel: LoginViewModelType {
         let isSamePassword = password.combineLatest(passwordAgain)
             .map { $0 == $1 }
         
-        return isValidEmail
-            .combineLatest(isValidPassword, isSamePassword, loginState)
-            .map { isValidEmail, isValidPassword, isSamePassword, loginState in
+        let output: AnyPublisher<LoginViewModelOutput, Never> = isValidEmail
+            .combineLatest(isValidPassword, isSamePassword)
+            .map { isValidEmail, isValidPassword, isSamePassword in
                 var loginEnabled = false
                 var signUpEnabled = false
-                if case loginState = LoginState.signup {
+                if case self.loginState = LoginState.signup {
                     signUpEnabled = isValidEmail && isValidPassword && isSamePassword
                     loginEnabled = true
                 } else {
@@ -68,6 +88,8 @@ struct LoginViewModel: LoginViewModelType {
                                             signUpEnabled: signUpEnabled)
             }
             .eraseToAnyPublisher()
+        
+        return output
     }
     
     private func isValidEmail(_ email: String) -> Bool {

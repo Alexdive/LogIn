@@ -92,7 +92,7 @@ final class LoginViewController: UIViewController {
         button.setAttributedTitle(attributedTitle, for: .normal)
         button.setBackgroundColor(.systemIndigo, forState: .normal)
         button.setBackgroundColor(.lightGray, forState: .disabled)
-        button.addTarget(self, action: #selector(onLoginTap), for: .touchUpInside)
+//        button.addTarget(self, action: #selector(onLoginTap), for: .touchUpInside)
         button.isEnabled = false
         return button
     }()
@@ -161,10 +161,12 @@ final class LoginViewController: UIViewController {
     private func bind(to viewModel: LoginViewModelType) {
         subscriptions.forEach { $0.cancel() }
         subscriptions.removeAll()
+        
         let input = LoginViewModelInput(email: emailTextField.textPublisher,
                                         pass: passwordTextField.textPublisher,
                                         passAgain: passwordAgainTextField.textPublisher,
-                                        loginState: $loginState.eraseToAnyPublisher())
+                                        signUpTap: signUpButton.publisher(for: .touchUpInside).eraseToAnyPublisher(),
+                                        loginTap: loginButton.publisher(for: .touchUpInside).eraseToAnyPublisher())
         
         viewModel.transform(input: input)
             .sink(receiveValue: {[unowned self] output in
@@ -187,7 +189,7 @@ final class LoginViewController: UIViewController {
     }
     
     @objc private func onLoginTap() {
-        model.onLoginTap()
+//        model.onLoginTap()
     }
     
     @objc private func onHaveAccountTap() {
@@ -251,6 +253,7 @@ extension LoginViewController {
         UIView.animate(withDuration: 0.6, delay: 0.5) {
             self.loginButton.transform = .identity
             self.loginShadowView.transform = .identity
+            self.passwordAgainTextField.transform = .identity
             
             self.forgotPasswordButton.alpha = 1
             self.loginButton.alpha = 1
@@ -261,27 +264,34 @@ extension LoginViewController {
     
     private func switchToSignUpWithAnimation() {
         passwordAgainTextField.isHidden = false
-        self.signUpButton.isEnabled = false
+        signUpButton.isEnabled = false
         
-        let passwBottom = passwordTextField.frame.maxY
-        let loginTop = loginButton.frame.minY
-        let loginShift = loginTop - passwBottom - 16
+//        let passwBottom = passwordTextField.frame.maxY
+//        let loginTop = loginButton.frame.minY
+//        let loginShift = loginTop - passwBottom - 16
         
-        UIView.animate(withDuration: 0.6, delay: 0, options: [.curveEaseInOut]) {
+        UIView.animate(withDuration: 0.6) {
+//            self.passwordAgainTextField.alpha = 1
+            self.forgotPasswordButton.alpha = 0
+        }
+        
+        UIView.animate(withDuration: 0.6, delay: 0.2, options: [.curveEaseInOut]) {
             let attributedTitle = self.makeAttributedString(with: self.model.presentationObject.haveAccountText)
             self.needAccountButton.setAttributedTitle(attributedTitle, for: .normal)
             
-            self.loginButton.transform = CGAffineTransform(translationX: 0, y: -loginShift)
-            self.loginShadowView.transform = CGAffineTransform(translationX: 0, y: -loginShift)
+            self.loginButton.transform = CGAffineTransform(translationX: 0, y: 44 + 16)
+            self.loginShadowView.transform = CGAffineTransform(translationX: 0, y: 44 + 16)
+            self.passwordAgainTextField.transform = CGAffineTransform(translationX: 0, y: 44 + 16)
+//            self.passwordAgainTextField.alpha = 1
             
-            self.forgotPasswordButton.alpha = 0
-            self.loginButton.alpha = 0
-            self.loginShadowView.alpha = 0
+//            self.forgotPasswordButton.alpha = 0
+//            self.loginButton.alpha = 0
+//            self.loginShadowView.alpha = 0
             self.needAccountButton.alpha = 0
         } completion: { _ in
             self.forgotPasswordButton.isHidden = true
-            self.loginButton.isHidden = true
-            self.loginShadowView.isHidden = true
+//            self.loginButton.isHidden = true
+//            self.loginShadowView.isHidden = true
             self.needAccountButton.isEnabled = true
         }
         
@@ -294,8 +304,8 @@ extension LoginViewController {
         let signUpshift = signupTop - passwAgainBottom - 44
         
         UIView.animate(withDuration: 0.5, delay: 0.2, options: [.curveEaseInOut]) {
-            self.signUpButton.transform = CGAffineTransform(translationX: 0, y: -signUpshift)
-            self.signUpShadowView.transform = CGAffineTransform(translationX: 0, y: -signUpshift)
+//            self.signUpButton.transform = CGAffineTransform(translationX: 0, y: -signUpshift)
+//            self.signUpShadowView.transform = CGAffineTransform(translationX: 0, y: -signUpshift)
             self.needAccountButton.alpha = 1
         }
     }
@@ -347,7 +357,7 @@ extension LoginViewController {
             passwordTextField.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -60),
             passwordTextField.heightAnchor.constraint(equalToConstant: 44),
             
-            passwordAgainTextField.topAnchor.constraint(equalTo: passwordTextField.bottomAnchor, constant: 16),
+            passwordAgainTextField.topAnchor.constraint(equalTo: emailTextField.bottomAnchor, constant: 16),
             passwordAgainTextField.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 60),
             passwordAgainTextField.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -60),
             passwordAgainTextField.heightAnchor.constraint(equalToConstant: 44),

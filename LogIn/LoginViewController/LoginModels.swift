@@ -74,7 +74,8 @@ struct LoginViewModelInput {
     let email: AnyPublisher<String?, Never>
     let pass: AnyPublisher<String?, Never>
     let passAgain: AnyPublisher<String?, Never>
-    let loginState: AnyPublisher<LoginState, Never>
+    let signUpTap: AnyPublisher<Void, Never>
+    let loginTap: AnyPublisher<Void, Never>
 }
 
 struct LoginViewModelOutput {
