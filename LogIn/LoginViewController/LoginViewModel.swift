@@ -2,19 +2,25 @@
 //  LoginViewModel.swift
 //  LogIn
 //
-//  Created by Aleksei Permiakov on 08.12.2021.
+//  Created by Aleksei Permiakov on 27.12.2021.
 //
 
-import UIKit
+import Foundation
 import Combine
 
 protocol LoginViewModelType {
     var presentationObject: LoginViewPresentationObject { get }
     func transform(input: LoginViewModelInput) -> AnyPublisher<LoginViewModelOutput, Never>
+    func onLoginTap()
 }
 
 struct LoginViewModel: LoginViewModelType {
+    
     let presentationObject = LoginViewPresentationObject()
+    
+    func onLoginTap() {
+        print("Log in")
+    }
     
     func transform(input: LoginViewModelInput) -> AnyPublisher<LoginViewModelOutput, Never> {
         let email = input.email
@@ -31,6 +37,9 @@ struct LoginViewModel: LoginViewModelType {
             .removeDuplicates()
             .compactMap { $0 }
         
+        let loginState = input.loginState
+            .map { $0 }
+        
         let isValidEmail = email
             .map { self.isValidEmail($0) }
         
@@ -41,13 +50,22 @@ struct LoginViewModel: LoginViewModelType {
             .map { $0 == $1 }
         
         return isValidEmail
-            .combineLatest(isValidPassword, isSamePassword)
-            .map { isValidEmail, isValidPassword, isSamePassword in
-                LoginViewModelOutput(emailTint: isValidEmail ? .systemGreen : .systemGray2,
-                                     passwTint: isValidPassword ? .systemGreen : .systemGray2,
-                                     passwAgainTint: isValidPassword && isSamePassword ? .systemGreen : .systemGray2,
-                                     emailErrorText: isValidEmail ? "" : "Incorrect email format",
-                                     isEnabled: isValidEmail && isValidPassword && isSamePassword)
+            .combineLatest(isValidPassword, isSamePassword, loginState)
+            .map { isValidEmail, isValidPassword, isSamePassword, loginState in
+                var loginEnabled = false
+                var signUpEnabled = false
+                if case loginState = LoginState.signup {
+                    signUpEnabled = isValidEmail && isValidPassword && isSamePassword
+                    loginEnabled = true
+                } else {
+                    loginEnabled = isValidEmail && isValidPassword
+                    signUpEnabled = true
+                }
+                return LoginViewModelOutput(emailTint: isValidEmail ? .systemGreen : .systemRed,
+                                            passwTint: isValidPassword ? .systemGreen : .systemGray2,
+                                            passwAgainTint: isValidPassword && isSamePassword ? .systemGreen : .systemGray2,
+                                            loginEnabled: loginEnabled,
+                                            signUpEnabled: signUpEnabled)
             }
             .eraseToAnyPublisher()
     }
