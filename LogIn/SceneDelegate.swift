@@ -17,7 +17,7 @@ class SceneDelegate: UIResponder, UIWindowSceneDelegate {
         window = UIWindow(windowScene: windowScene)
         
         let viewModel = LoginViewModel()
-        let loginVC = LoginViewController(model: viewModel)
+        let loginVC = LoginViewController(viewModel: viewModel)
         
         window?.rootViewController = loginVC
         window?.makeKeyAndVisible()

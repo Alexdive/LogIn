@@ -65,6 +65,10 @@ struct LoginViewPresentationObject {
                                  textColor: .white,
                                  font: AppConstants.Fonts.avenirNext18)
     
+    let empty = TextConfig(text: "",
+                                 textColor: .white,
+                                 font: AppConstants.Fonts.avenirNext18)
+    
     let backgroundColor: UIColor = .white
     let cornerRadius: CGFloat = 22
 }
@@ -74,7 +78,8 @@ struct LoginViewModelInput {
     let email: AnyPublisher<String?, Never>
     let pass: AnyPublisher<String?, Never>
     let passAgain: AnyPublisher<String?, Never>
-    let loginState: AnyPublisher<LoginState, Never>
+    let signUpTap: AnyPublisher<Void, Never>
+    let loginTap: AnyPublisher<Void, Never>
 }
 
 struct LoginViewModelOutput {
@@ -82,5 +87,4 @@ struct LoginViewModelOutput {
     var passwTint: UIColor
     var passwAgainTint: UIColor
     var loginEnabled: Bool
-    var signUpEnabled: Bool
 }

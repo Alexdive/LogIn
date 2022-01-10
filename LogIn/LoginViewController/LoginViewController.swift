@@ -8,24 +8,9 @@
 import UIKit
 import Combine
 
-enum LoginState {
-    case login
-    case signup
-}
-
 final class LoginViewController: UIViewController {
     
-    private var model: LoginViewModelType
-    
-    @Published var loginState: LoginState = .login {
-        didSet {
-            if loginState == .login {
-                switchToLoginWithAnimation()
-            } else {
-                switchToSignUpWithAnimation()
-            }
-        }
-    }
+    private var viewModel: LoginViewModelType
     
     private var subscriptions = Set<AnyCancellable>()
     
@@ -57,28 +42,31 @@ final class LoginViewController: UIViewController {
     private lazy var headerLabel: UILabel = {
         let label = UILabel()
         label.textAlignment = .center
-        configure(label: label, with: model.presentationObject.loginLabel)
+        configure(label: label, with: viewModel.presentationObject.loginLabel)
         return label
     }()
     
     private lazy var emailTextField: UITextField = {
         let tf = UITextField()
-        configure(textfield: tf, with: model.presentationObject.emailTF)
+        configure(textfield: tf, with: viewModel.presentationObject.emailTF)
         tf.keyboardType = .emailAddress
+        tf.textContentType = .emailAddress
         return tf
     }()
     
     private lazy var passwordTextField: UITextField = {
         let tf = UITextField()
-        configure(textfield: tf, with: model.presentationObject.passwordTF)
+        configure(textfield: tf, with: viewModel.presentationObject.passwordTF)
         tf.isSecureTextEntry = true
+        tf.textContentType = .oneTimeCode
         return tf
     }()
     
     private lazy var passwordAgainTextField: UITextField = {
         let tf = UITextField()
-        configure(textfield: tf, with: model.presentationObject.passwordAgainTF)
+        configure(textfield: tf, with: viewModel.presentationObject.passwordAgainTF)
         tf.isSecureTextEntry = true
+        tf.textContentType = .oneTimeCode
         tf.isHidden = true
         tf.alpha = 0
         return tf
@@ -86,44 +74,40 @@ final class LoginViewController: UIViewController {
     
     private lazy var loginButton: UIButton = {
         let button = UIButton()
-        button.layer.cornerRadius = model.presentationObject.cornerRadius
+        button.layer.cornerRadius = viewModel.presentationObject.cornerRadius
         addShadowTo(button)
-        let attributedTitle = makeAttributedString(with: model.presentationObject.loginButton)
+        let attributedTitle = makeAttributedString(with: viewModel.presentationObject.loginButton)
         button.setAttributedTitle(attributedTitle, for: .normal)
         button.setBackgroundColor(.systemIndigo, forState: .normal)
         button.setBackgroundColor(.lightGray, forState: .disabled)
-        button.addTarget(self, action: #selector(onLoginTap), for: .touchUpInside)
         button.isEnabled = false
         return button
     }()
     
     private lazy var forgotPasswordButton: UIButton = {
         let button = UIButton()
-        let attributedTitle = makeAttributedString(with: model.presentationObject.forgotPasswButton)
-        let attributedTitleTapped = makeAttributedString(with: model.presentationObject.forgotPasswButtonTap)
+        let attributedTitle = makeAttributedString(with: viewModel.presentationObject.forgotPasswButton)
+        let attributedTitleTapped = makeAttributedString(with: viewModel.presentationObject.forgotPasswButtonTap)
         button.setAttributedTitle(attributedTitle, for: .normal)
         button.setAttributedTitle(attributedTitleTapped, for: .highlighted)
         return button
     }()
     
-    private lazy var needAccountButton: UIButton = {
-        let button = UIButton()
-        let attributedTitle = makeAttributedString(with: model.presentationObject.needAccountText)
-        button.setAttributedTitle(attributedTitle, for: .normal)
-        button.isEnabled = false
-        button.addTarget(self, action: #selector(onHaveAccountTap), for: .touchUpInside)
-        return button
+    private lazy var needAccountLabel: UILabel = {
+        let label = UILabel()
+        label.textAlignment = .center
+        configure(label: label, with: viewModel.presentationObject.needAccountText)
+        return label
     }()
     
     private lazy var signUpButton: UIButton = {
         let button = UIButton()
-        button.layer.cornerRadius = model.presentationObject.cornerRadius
+        button.layer.cornerRadius = viewModel.presentationObject.cornerRadius
         addShadowTo(button)
-        let attributedTitle = makeAttributedString(with: model.presentationObject.signUpButton)
+        let attributedTitle = makeAttributedString(with: viewModel.presentationObject.signUpButton)
         button.setAttributedTitle(attributedTitle, for: .normal)
         button.setBackgroundColor(.systemIndigo, forState: .normal)
         button.setBackgroundColor(.lightGray, forState: .disabled)
-        button.addTarget(self, action: #selector(onSignUpTap), for: .touchUpInside)
         return button
     }()
     
@@ -143,8 +127,8 @@ final class LoginViewController: UIViewController {
         return view
     }()
     
-    init(model: LoginViewModelType) {
-        self.model = model
+    init(viewModel: LoginViewModelType) {
+        self.viewModel = viewModel
         super.init(nibName: nil, bundle: nil)
     }
     
@@ -155,44 +139,33 @@ final class LoginViewController: UIViewController {
     override func viewDidLoad() {
         super.viewDidLoad()
         setupViews()
-        bind(to: model)
+        bindToViewModel()
     }
     
-    private func bind(to viewModel: LoginViewModelType) {
+    private func bindToViewModel() {
         subscriptions.forEach { $0.cancel() }
         subscriptions.removeAll()
+        
         let input = LoginViewModelInput(email: emailTextField.textPublisher,
                                         pass: passwordTextField.textPublisher,
                                         passAgain: passwordAgainTextField.textPublisher,
-                                        loginState: $loginState.eraseToAnyPublisher())
+                                        signUpTap: signUpButton.publisher(for: .touchUpInside).eraseToAnyPublisher(),
+                                        loginTap: loginButton.publisher(for: .touchUpInside).eraseToAnyPublisher())
         
         viewModel.transform(input: input)
             .sink(receiveValue: {[unowned self] output in
                 self.emailTextField.leftView?.tintColor = output.emailTint
                 self.passwordTextField.leftView?.tintColor = output.passwTint
                 self.passwordAgainTextField.leftView?.tintColor = output.passwAgainTint
-                self.signUpButton.isEnabled = output.signUpEnabled
                 self.loginButton.isEnabled = output.loginEnabled
             })
             .store(in: &subscriptions)
-    }
-    
-    // MARK: - buttons actions
-    @objc private func onSignUpTap() {
-        if loginState == .login {
-            loginState = .signup
-        } else {
-            print("sign up")
+        
+        viewModel.transitionToLogin = {[weak self] in
+            self?.transitionToLoginWithAnimation()
         }
-    }
-    
-    @objc private func onLoginTap() {
-        model.onLoginTap()
-    }
-    
-    @objc private func onHaveAccountTap() {
-        if loginState == .signup {
-            loginState = .login
+        viewModel.transitionToSignUp = {[weak self] in
+            self?.transitionToSignUpWithAnimation()
         }
     }
 }
@@ -217,8 +190,9 @@ extension LoginViewController {
         textfield.setIcon(UIImage(systemName: textFieldConfig.imageName))
         textfield.backgroundColor = textFieldConfig.backgroundColor
         textfield.tintColor = textFieldConfig.tintColor
-        textfield.layer.cornerRadius = model.presentationObject.cornerRadius
+        textfield.layer.cornerRadius = viewModel.presentationObject.cornerRadius
         textfield.autocapitalizationType = .none
+        textfield.autocorrectionType = .no
         addShadowTo(textfield)
     }
     
@@ -229,96 +203,106 @@ extension LoginViewController {
         view.layer.shadowOffset = CGSize(width: 5, height: 5)
     }
     
-    private func switchToLoginWithAnimation() {
-        UIView.animate(withDuration: 0.6, delay: 0, options: [.curveEaseInOut]) {
-            self.signUpButton.transform = .identity
-            self.signUpShadowView.transform = .identity
+    private func transitionToLoginWithAnimation() {
+        let attributedEmptyTitle = makeAttributedString(with: viewModel.presentationObject.empty)
+        
+        UIView.animate(withDuration: 0.5, delay: 0, options: [.curveEaseInOut]) {[self] in
+            signUpButton.transform = .identity
+            signUpShadowView.transform = .identity
             
-            self.needAccountButton.alpha = 0
-            self.passwordAgainTextField.alpha = 0
-        } completion: { _ in
-            self.passwordAgainTextField.isHidden = true
-            let attributedTitle = self.makeAttributedString(with: self.model.presentationObject.needAccountText)
-            self.needAccountButton.setAttributedTitle(attributedTitle, for: .normal)
-            self.signUpButton.isEnabled = true
+            passwordAgainTextField.alpha = 0
+            needAccountLabel.alpha = 0
+            configure(label: needAccountLabel, with: viewModel.presentationObject.needAccountText)
+        } completion: {[self] _ in
+            passwordAgainTextField.isHidden = true
+            forgotPasswordButton.isHidden = false
+            loginButton.isHidden = false
+            loginShadowView.isHidden = false
+            
+            UIView.transition(with: loginButton, duration: 0.3, options: .transitionCrossDissolve, animations: {
+                loginButton.setAttributedTitle(attributedEmptyTitle, for: .normal)
+            }, completion: nil)
+            UIView.transition(with: signUpButton, duration: 0.3, options: .transitionCrossDissolve, animations: {
+                signUpButton.setAttributedTitle(attributedEmptyTitle, for: .normal)
+            }, completion: nil)
         }
         
-        forgotPasswordButton.isHidden = false
-        loginButton.isHidden = false
-        loginShadowView.isHidden = false
-        self.needAccountButton.isEnabled = false
-        
-        UIView.animate(withDuration: 0.6, delay: 0.5) {
-            self.loginButton.transform = .identity
-            self.loginShadowView.transform = .identity
+        UIView.animate(withDuration: 0.5, delay: 0.3) {[self] in
+            loginButton.transform = .identity
+            loginShadowView.transform = .identity
+            passwordAgainTextField.transform = .identity
             
-            self.forgotPasswordButton.alpha = 1
-            self.loginButton.alpha = 1
-            self.loginShadowView.alpha = 1
-            self.needAccountButton.alpha = 1
+            forgotPasswordButton.alpha = 1
+            needAccountLabel.alpha = 1
+        } completion: {[self] _ in
+            UIView.transition(with: loginButton, duration: 0.5, options: .transitionCrossDissolve, animations: {
+                let attributedTitleLogin = makeAttributedString(with: viewModel.presentationObject.loginButton)
+                loginButton.setAttributedTitle(attributedTitleLogin, for: .normal)
+            }, completion: nil)
+            UIView.transition(with: signUpButton, duration: 0.5, options: .transitionCrossDissolve, animations: {
+                let attributedTitleSignUp = makeAttributedString(with: viewModel.presentationObject.signUpButton)
+                signUpButton.setAttributedTitle(attributedTitleSignUp, for: .normal)
+            }, completion: nil)
         }
     }
     
-    private func switchToSignUpWithAnimation() {
+    private func transitionToSignUpWithAnimation() {
         passwordAgainTextField.isHidden = false
-        self.signUpButton.isEnabled = false
         
-        let passwBottom = passwordTextField.frame.maxY
-        let loginTop = loginButton.frame.minY
-        let loginShift = loginTop - passwBottom - 16
+        let loginYShift: CGFloat = 44 + 16
+        let attributedEmptyTitle = makeAttributedString(with: viewModel.presentationObject.empty)
         
-        UIView.animate(withDuration: 0.6, delay: 0, options: [.curveEaseInOut]) {
-            let attributedTitle = self.makeAttributedString(with: self.model.presentationObject.haveAccountText)
-            self.needAccountButton.setAttributedTitle(attributedTitle, for: .normal)
-            
-            self.loginButton.transform = CGAffineTransform(translationX: 0, y: -loginShift)
-            self.loginShadowView.transform = CGAffineTransform(translationX: 0, y: -loginShift)
-            
-            self.forgotPasswordButton.alpha = 0
-            self.loginButton.alpha = 0
-            self.loginShadowView.alpha = 0
-            self.needAccountButton.alpha = 0
-        } completion: { _ in
-            self.forgotPasswordButton.isHidden = true
-            self.loginButton.isHidden = true
-            self.loginShadowView.isHidden = true
-            self.needAccountButton.isEnabled = true
+        UIView.animate(withDuration: 0.5) {[self] in
+            forgotPasswordButton.alpha = 0
+            needAccountLabel.alpha = 0
+            configure(label: needAccountLabel, with: viewModel.presentationObject.haveAccountText)
+        } completion: {[self] _ in
+            forgotPasswordButton.isHidden = true
+            UIView.transition(with: loginButton, duration: 0.3, options: .transitionCrossDissolve, animations: {
+                loginButton.setAttributedTitle(attributedEmptyTitle, for: .normal)
+            }, completion: nil)
+            UIView.transition(with: signUpButton, duration: 0.3, options: .transitionCrossDissolve, animations: {
+                signUpButton.setAttributedTitle(attributedEmptyTitle, for: .normal)
+            }, completion: nil)
         }
         
-        UIView.animate(withDuration: 0.6, delay: 0.5) {
+        UIView.animate(withDuration: 0.5, delay: 0.3, options: [.curveEaseInOut]) {[self] in
+            loginButton.transform = CGAffineTransform(translationX: 0, y: loginYShift)
+            loginShadowView.transform = CGAffineTransform(translationX: 0, y: loginYShift)
+            passwordAgainTextField.transform = CGAffineTransform(translationX: 0, y: loginYShift)
+            needAccountLabel.alpha = 1
+        } completion: {[self] _ in
+            UIView.transition(with: loginButton, duration: 0.5, options: .transitionCrossDissolve, animations: {
+                let attributedTitleSignUp = makeAttributedString(with: viewModel.presentationObject.signUpButton)
+                loginButton.setAttributedTitle(attributedTitleSignUp, for: .normal)
+            }, completion: nil)
+            UIView.transition(with: signUpButton, duration: 0.5, options: .transitionCrossDissolve, animations: {
+                let attributedTitleLogin = makeAttributedString(with: viewModel.presentationObject.loginButton)
+                signUpButton.setAttributedTitle(attributedTitleLogin, for: .normal)
+            }, completion: nil)
+        }
+        
+        UIView.animate(withDuration: 0.5, delay: 0.5) {
             self.passwordAgainTextField.alpha = 1
-        }
-        
-        let passwAgainBottom = passwordAgainTextField.frame.maxY
-        let signupTop = signUpButton.frame.minY
-        let signUpshift = signupTop - passwAgainBottom - 44
-        
-        UIView.animate(withDuration: 0.5, delay: 0.2, options: [.curveEaseInOut]) {
-            self.signUpButton.transform = CGAffineTransform(translationX: 0, y: -signUpshift)
-            self.signUpShadowView.transform = CGAffineTransform(translationX: 0, y: -signUpshift)
-            self.needAccountButton.alpha = 1
         }
     }
     
     private func setupViews() {
+        view.backgroundColor = viewModel.presentationObject.backgroundColor
         
-        view.backgroundColor = model.presentationObject.backgroundColor
-        
-        let subviews = [
-            backGradientView,
-            backView,
-            headerLabel,
-            emailTextField,
-            passwordTextField,
-            passwordAgainTextField,
-            loginShadowView,
-            loginButton,
-            forgotPasswordButton,
-            needAccountButton,
-            signUpShadowView,
-            signUpButton
-        ]
-        subviews.forEach {
+        [backGradientView,
+         backView,
+         headerLabel,
+         emailTextField,
+         passwordTextField,
+         passwordAgainTextField,
+         loginShadowView,
+         loginButton,
+         forgotPasswordButton,
+         needAccountLabel,
+         signUpShadowView,
+         signUpButton
+        ].forEach {
             $0.translatesAutoresizingMaskIntoConstraints = false
             view.addSubview($0)
         }
@@ -347,7 +331,7 @@ extension LoginViewController {
             passwordTextField.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -60),
             passwordTextField.heightAnchor.constraint(equalToConstant: 44),
             
-            passwordAgainTextField.topAnchor.constraint(equalTo: passwordTextField.bottomAnchor, constant: 16),
+            passwordAgainTextField.topAnchor.constraint(equalTo: emailTextField.bottomAnchor, constant: 16),
             passwordAgainTextField.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 60),
             passwordAgainTextField.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -60),
             passwordAgainTextField.heightAnchor.constraint(equalToConstant: 44),
@@ -365,8 +349,8 @@ extension LoginViewController {
             forgotPasswordButton.topAnchor.constraint(equalTo: loginButton.bottomAnchor, constant: 20),
             forgotPasswordButton.centerXAnchor.constraint(equalTo: view.centerXAnchor),
             
-            needAccountButton.bottomAnchor.constraint(equalTo: signUpButton.topAnchor, constant: -20),
-            needAccountButton.centerXAnchor.constraint(equalTo: view.centerXAnchor),
+            needAccountLabel.bottomAnchor.constraint(equalTo: signUpButton.topAnchor, constant: -20),
+            needAccountLabel.centerXAnchor.constraint(equalTo: view.centerXAnchor),
             
             signUpShadowView.bottomAnchor.constraint(equalTo: view.safeAreaLayoutGuide.bottomAnchor, constant: -44),
             signUpShadowView.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 60),
