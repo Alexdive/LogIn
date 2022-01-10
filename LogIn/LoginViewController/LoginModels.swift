@@ -65,6 +65,10 @@ struct LoginViewPresentationObject {
                                  textColor: .white,
                                  font: AppConstants.Fonts.avenirNext18)
     
+    let empty = TextConfig(text: "",
+                                 textColor: .white,
+                                 font: AppConstants.Fonts.avenirNext18)
+    
     let backgroundColor: UIColor = .white
     let cornerRadius: CGFloat = 22
 }
@@ -83,5 +87,4 @@ struct LoginViewModelOutput {
     var passwTint: UIColor
     var passwAgainTint: UIColor
     var loginEnabled: Bool
-    var signUpEnabled: Bool
 }

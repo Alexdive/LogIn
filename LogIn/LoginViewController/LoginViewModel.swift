@@ -8,32 +8,49 @@
 import Foundation
 import Combine
 
+enum LoginState {
+    case login
+    case signup
+}
+
 protocol LoginViewModelType {
     var presentationObject: LoginViewPresentationObject { get }
     func transform(input: LoginViewModelInput) -> AnyPublisher<LoginViewModelOutput, Never>
-    func onLoginTap()
+    var transitionToLogin: (() -> Void)? { get set }
+    var transitionToSignUp: (() -> Void)? { get set }
 }
 
-class LoginViewModel: LoginViewModelType {
+final class LoginViewModel: LoginViewModelType {
     
-    var loginState: LoginState = .login {
+    var transitionToLogin: (() -> Void)?
+    var transitionToSignUp: (() -> Void)?
+    let presentationObject = LoginViewPresentationObject()
+    
+    private var cancellable = Set<AnyCancellable>()
+    private var loginState: LoginState = .login {
         didSet {
             if loginState == .login {
-                
+                transitionToLogin?()
             } else {
-                
+                transitionToSignUp?()
             }
         }
     }
-    var canc = Set<AnyCancellable>()
-    let presentationObject = LoginViewPresentationObject()
-   
-    func onLoginTap() {
-        print("Log in")
+    
+    private func onLoginTap(email: String, passw: String) {
+        if loginState == .login {
+            print("Log in", email, passw)
+        } else {
+            print("Sign up", email, passw)
+        }
     }
     
-    func onSignUpTap() {
-        print("sign up")
+    private func onSignUpTap() {
+        if loginState == .login {
+            loginState = .signup
+        } else {
+            loginState = .login
+        }
     }
     
     func transform(input: LoginViewModelInput) -> AnyPublisher<LoginViewModelOutput, Never> {
@@ -51,14 +68,24 @@ class LoginViewModel: LoginViewModelType {
             .removeDuplicates()
             .compactMap { $0 }
         
-        let signupTap = input.signUpTap
+        var emailString = ""
+        var passwString = ""
+        
+        email
+            .sink { emailString = $0 }
+            .store(in: &cancellable)
+        
+        password
+            .sink { passwString = $0 }
+            .store(in: &cancellable)
+        
+        input.signUpTap
             .sink { self.onSignUpTap() }
-            .store(in: &canc)
+            .store(in: &cancellable)
         
-        
-        let loginTap = input.loginTap
-            .sink { self.onLoginTap() }
-            .store(in: &canc)
+        input.loginTap
+            .sink { self.onLoginTap(email: emailString, passw: passwString) }
+            .store(in: &cancellable)
         
         let isValidEmail = email
             .map { self.isValidEmail($0) }
@@ -73,19 +100,15 @@ class LoginViewModel: LoginViewModelType {
             .combineLatest(isValidPassword, isSamePassword)
             .map { isValidEmail, isValidPassword, isSamePassword in
                 var loginEnabled = false
-                var signUpEnabled = false
                 if case self.loginState = LoginState.signup {
-                    signUpEnabled = isValidEmail && isValidPassword && isSamePassword
-                    loginEnabled = true
+                    loginEnabled = isValidEmail && isValidPassword && isSamePassword
                 } else {
                     loginEnabled = isValidEmail && isValidPassword
-                    signUpEnabled = true
                 }
                 return LoginViewModelOutput(emailTint: isValidEmail ? .systemGreen : .systemRed,
                                             passwTint: isValidPassword ? .systemGreen : .systemGray2,
                                             passwAgainTint: isValidPassword && isSamePassword ? .systemGreen : .systemGray2,
-                                            loginEnabled: loginEnabled,
-                                            signUpEnabled: signUpEnabled)
+                                            loginEnabled: loginEnabled)
             }
             .eraseToAnyPublisher()
         
