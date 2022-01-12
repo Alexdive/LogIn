@@ -15,17 +15,20 @@ enum LoginState {
 
 protocol LoginViewModelType {
     var presentationObject: LoginViewPresentationObject { get }
-    func transform(input: LoginViewModelInput) -> AnyPublisher<LoginViewModelOutput, Never>
     var transitionToLogin: (() -> Void)? { get set }
     var transitionToSignUp: (() -> Void)? { get set }
+    var onLogin: (() -> Void)? { get set }
+    func transform(input: LoginViewModelInput) -> AnyPublisher<LoginViewModelOutput, Never>
 }
 
 final class LoginViewModel: LoginViewModelType {
-    
+    let presentationObject = LoginViewPresentationObject()
     var transitionToLogin: (() -> Void)?
     var transitionToSignUp: (() -> Void)?
-    let presentationObject = LoginViewPresentationObject()
+    var onLogin: (() -> Void)?
     
+    
+    private let auth = AuthManager.shared
     private var cancellable = Set<AnyCancellable>()
     private var loginState: LoginState = .login {
         didSet {
@@ -37,11 +40,20 @@ final class LoginViewModel: LoginViewModelType {
         }
     }
     
+    private lazy var completion: (Result<Bool, Error>) -> Void = { [weak self] result in
+        switch result {
+        case .success(let isLoggedIn):
+            self?.onLogin?()
+        case .failure(let error):
+            print(error.localizedDescription)
+        }
+    }
+    
     private func onLoginTap(email: String, passw: String) {
         if loginState == .login {
-            print("Log in", email, passw)
+            auth.signIn(email: email, password: passw, completion: completion)
         } else {
-            print("Sign up", email, passw)
+            auth.createUser(email: email, password: passw, completion: completion)
         }
     }
     

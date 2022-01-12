@@ -53,6 +53,10 @@ struct LoginViewPresentationObject {
                                  textColor: .white,
                                  font: AppConstants.Fonts.avenirNext18)
     
+    let loginButtonIndigo = TextConfig(text: "Login",
+                                 textColor: .systemIndigo,
+                                 font: AppConstants.Fonts.avenirNext18)
+    
     let forgotPasswButton = TextConfig(text: "Forgot your password?",
                                  textColor: .white,
                                  font: AppConstants.Fonts.avenirNext13)
@@ -63,6 +67,10 @@ struct LoginViewPresentationObject {
     
     let signUpButton = TextConfig(text: "Sign Up",
                                  textColor: .white,
+                                 font: AppConstants.Fonts.avenirNext18)
+    
+    let signUpButtonIndigo = TextConfig(text: "Sign Up",
+                                 textColor: .systemIndigo,
                                  font: AppConstants.Fonts.avenirNext18)
     
     let empty = TextConfig(text: "",
