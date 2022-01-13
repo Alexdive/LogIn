@@ -13,37 +13,38 @@ final class AuthManager {
     static let shared = AuthManager()
     private init() {}
     
-    private(set) var isLoggedIn = CurrentValueSubject<Bool, Never>(false)
+    private var _isLoggedIn = CurrentValueSubject<Bool, Never>(false)
+    var isLoggedIn: AnyPublisher<Bool, Never> { _isLoggedIn.eraseToAnyPublisher() }
     
     var userEmail: String? {
         Auth.auth().currentUser?.email
     }
     
-    func createUser(email: String, password: String, completion: @escaping (Result<Bool, Error>) -> Void) {
-        Auth.auth().createUser(withEmail: email, password: password) { [weak self] authResult, error in
-            guard let self = self else { return }
-            if let error = error {
-                print(error.localizedDescription)
-                completion(.failure(error))
-                return
+    func createUser(email: String, password: String) -> Future<Void, Error> {
+        return Future { promise in
+            Auth.auth().createUser(withEmail: email, password: password) { [weak self] authResult, error in
+                guard let self = self else { return }
+                if let error = error {
+                    promise(.failure(error))
+                    return
+                }
+                self._isLoggedIn.send(true)
+                promise(.success(()))
             }
-            print(authResult?.user ?? "")
-            self.isLoggedIn.send(true)
-            completion(.success(true))
         }
     }
     
-    func signIn(email: String, password: String, completion: @escaping (Result<Bool, Error>) -> Void) {
-        Auth.auth().signIn(withEmail: email, password: password) { [weak self] authResult, error in
-            guard let self = self else { return }
-            if let error = error {
-                print(error.localizedDescription)
-                completion(.failure(error))
-                return
+    func signIn(email: String, password: String) -> Future<Void, Error> {
+        return Future { promise in
+            Auth.auth().signIn(withEmail: email, password: password) { [weak self] authResult, error in
+                guard let self = self else { return }
+                if let error = error {
+                    promise(.failure(error))
+                    return
+                }
+                self._isLoggedIn.send(true)
+                promise(.success(()))
             }
-            print(authResult?.user ?? "")
-            self.isLoggedIn.send(true)
-            completion(.success(true))
         }
     }
     
@@ -52,9 +53,9 @@ final class AuthManager {
             try Auth.auth().signOut()
         } catch let signOutError as NSError {
             print("Error signing out: %@", signOutError)
-            self.isLoggedIn.send(true)
+            self._isLoggedIn.send(true)
             return
         }
-        self.isLoggedIn.send(false)
+        self._isLoggedIn.send(false)
     }
 }

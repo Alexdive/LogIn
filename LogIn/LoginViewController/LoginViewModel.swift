@@ -13,24 +13,26 @@ enum LoginState {
     case signup
 }
 
-typealias CombineTrigger = PassthroughSubject<Void, Never>
+typealias VoidTrigger = PassthroughSubject<Void, Never>
 
 protocol LoginViewModelType {
     var presentationObject: LoginViewPresentationObject { get }
-    var transitionToLogin: CombineTrigger { get }
-    var transitionToSignUp: CombineTrigger { get }
-    var onLogin: CombineTrigger { get }
+    var transitionToLogin: VoidTrigger { get }
+    var transitionToSignUp: VoidTrigger { get }
+    var onLogin: VoidTrigger { get }
+    var showError: PassthroughSubject<String, Never> { get }
     func transform(input: LoginViewModelInput) -> AnyPublisher<LoginViewModelOutput, Never>
 }
 
 final class LoginViewModel: LoginViewModelType {
     let presentationObject = LoginViewPresentationObject()
-    var transitionToLogin = CombineTrigger()
-    var transitionToSignUp = CombineTrigger()
-    var onLogin = CombineTrigger()
+    var transitionToLogin = VoidTrigger()
+    var transitionToSignUp = VoidTrigger()
+    var onLogin = VoidTrigger()
+    var showError = PassthroughSubject<String, Never>()
     
-    private let auth = AuthManager.shared
     private var cancellable = Set<AnyCancellable>()
+    
     private var loginState: LoginState = .login {
         didSet {
             if loginState == .login {
@@ -41,26 +43,29 @@ final class LoginViewModel: LoginViewModelType {
         }
     }
     
-    private lazy var completion: (Result<Bool, Error>) -> Void = { [weak self] result in
-        switch result {
-        case .success(let isLoggedIn):
-            self?.onLogin.send()
-            self?.loginState = .login
+    private lazy var onErrorCompletion: ((Subscribers.Completion<Error>) -> Void) = { [unowned self] completion in
+        switch completion {
+        case .finished:
+            print("🏁 finished")
         case .failure(let error):
-            print(error.localizedDescription)
+            self.showError.send(error.localizedDescription)
+            print("❗️ failure: \(error.localizedDescription)")
         }
     }
     
-    private func onLoginTap(email: String, passw: String) {
-        switch loginState {
-        case .login:
-            auth.signIn(email: email, password: passw, completion: completion)
-        case .signup:
-            auth.createUser(email: email, password: passw, completion: completion)
-        }
+    private lazy var onValueCompletion: () -> Void = { [unowned self] in
+        self.onLogin.send()
+        self.loginState = .login
     }
     
-    private func onSignUpTap() {
+    typealias LoginService = (_ state: LoginState, _ email: String, _ password: String) -> AnyPublisher<Void, Error>
+    let loginService: LoginService
+    
+    init(loginService: @escaping LoginService) {
+        self.loginService = loginService
+    }
+    
+    private func onSwitchStateTap() {
         if loginState == .login {
             loginState = .signup
         } else {
@@ -83,23 +88,16 @@ final class LoginViewModel: LoginViewModelType {
             .removeDuplicates()
             .compactMap { $0 }
         
-        var emailString = ""
-        var passwString = ""
-        
-        email
-            .sink { emailString = $0 }
-            .store(in: &cancellable)
-        
-        password
-            .sink { passwString = $0 }
-            .store(in: &cancellable)
-        
-        input.signUpTap
-            .sink { self.onSignUpTap() }
+        input.switchStateTap
+            .sink { self.onSwitchStateTap() }
             .store(in: &cancellable)
         
         input.loginTap
-            .sink { self.onLoginTap(email: emailString, passw: passwString) }
+            .combineLatest(email, password)
+            .flatMap { [unowned self] _, email, password in
+                self.loginService(self.loginState, email, password)
+            }
+            .sink(receiveCompletion: onErrorCompletion, receiveValue: onValueCompletion)
             .store(in: &cancellable)
         
         let isValidEmail = email

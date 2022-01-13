@@ -100,11 +100,11 @@ final class LoginViewController: UIViewController {
         return label
     }()
     
-    private lazy var signUpButton: UIButton = {
+    private lazy var switchStateButton: UIButton = {
         let button = UIButton()
         button.layer.cornerRadius = viewModel.presentationObject.cornerRadius
         addShadowTo(button)
-        let attributedTitle = makeAttributedString(with: viewModel.presentationObject.signUpButtonIndigo)
+        let attributedTitle = makeAttributedString(with: viewModel.presentationObject.switchStateButtonIndigo)
         button.setAttributedTitle(attributedTitle, for: .normal)
         button.setBackgroundColor(.systemGray6, forState: .normal)
         button.setBackgroundColor(.lightGray, forState: .disabled)
@@ -162,7 +162,7 @@ final class LoginViewController: UIViewController {
         let input = LoginViewModelInput(email: emailTextField.textPublisher,
                                         pass: passwordTextField.textPublisher,
                                         passAgain: passwordAgainTextField.textPublisher,
-                                        signUpTap: signUpButton.publisher(for: .touchUpInside).eraseToAnyPublisher(),
+                                        switchStateTap: switchStateButton.publisher(for: .touchUpInside).eraseToAnyPublisher(),
                                         loginTap: loginButton.publisher(for: .touchUpInside).eraseToAnyPublisher())
         
         viewModel.transform(input: input)
@@ -185,6 +185,21 @@ final class LoginViewController: UIViewController {
                 self.transitionToSignUpWithAnimation()
             }
             .store(in: &subscriptions)
+        
+        viewModel.showError
+            .sink { message in
+                self.showErrorAlert(message: message)
+            }
+            .store(in: &subscriptions)
+    }
+    
+    private func showErrorAlert(message: String) {
+        let alertController = UIAlertController(title: "Error", message: message, preferredStyle: .alert)
+        let action = UIAlertAction(title: "OK", style: .default)
+        alertController.addAction(action)
+        alertController.view.layer.cornerRadius = 22
+        alertController.view.clipsToBounds = true
+        self.present(alertController, animated: true, completion: nil)
     }
 }
 
@@ -225,7 +240,7 @@ extension LoginViewController {
         let attributedEmptyTitle = makeAttributedString(with: viewModel.presentationObject.empty)
         
         UIView.animate(withDuration: 0.5, delay: 0, options: [.curveEaseInOut]) {[self] in
-            signUpButton.transform = .identity
+            switchStateButton.transform = .identity
             signUpShadowView.transform = .identity
             
             passwordAgainTextField.alpha = 0
@@ -238,8 +253,8 @@ extension LoginViewController {
             UIView.transition(with: loginButton, duration: 0.3, options: .transitionCrossDissolve, animations: {
                 loginButton.setAttributedTitle(attributedEmptyTitle, for: .normal)
             }, completion: nil)
-            UIView.transition(with: signUpButton, duration: 0.3, options: .transitionCrossDissolve, animations: {
-                signUpButton.setAttributedTitle(attributedEmptyTitle, for: .normal)
+            UIView.transition(with: switchStateButton, duration: 0.3, options: .transitionCrossDissolve, animations: {
+                switchStateButton.setAttributedTitle(attributedEmptyTitle, for: .normal)
             }, completion: nil)
         }
         
@@ -255,9 +270,9 @@ extension LoginViewController {
                 let attributedTitleLogin = makeAttributedString(with: viewModel.presentationObject.loginButton)
                 loginButton.setAttributedTitle(attributedTitleLogin, for: .normal)
             }, completion: nil)
-            UIView.transition(with: signUpButton, duration: 0.5, options: .transitionCrossDissolve, animations: {
-                let attributedTitleSignUp = makeAttributedString(with: viewModel.presentationObject.signUpButtonIndigo)
-                signUpButton.setAttributedTitle(attributedTitleSignUp, for: .normal)
+            UIView.transition(with: switchStateButton, duration: 0.5, options: .transitionCrossDissolve, animations: {
+                let attributedTitleSignUp = makeAttributedString(with: viewModel.presentationObject.switchStateButtonIndigo)
+                switchStateButton.setAttributedTitle(attributedTitleSignUp, for: .normal)
             }, completion: nil)
             configure(label: needAccountLabel, with: viewModel.presentationObject.needAccountText)
         }
@@ -280,8 +295,8 @@ extension LoginViewController {
             UIView.transition(with: loginButton, duration: 0.3, options: .transitionCrossDissolve, animations: {
                 loginButton.setAttributedTitle(attributedEmptyTitle, for: .normal)
             }, completion: nil)
-            UIView.transition(with: signUpButton, duration: 0.3, options: .transitionCrossDissolve, animations: {
-                signUpButton.setAttributedTitle(attributedEmptyTitle, for: .normal)
+            UIView.transition(with: switchStateButton, duration: 0.3, options: .transitionCrossDissolve, animations: {
+                switchStateButton.setAttributedTitle(attributedEmptyTitle, for: .normal)
             }, completion: nil)
         }
         
@@ -292,14 +307,15 @@ extension LoginViewController {
             passwordAgainTextField.transform = CGAffineTransform(translationX: 0, y: loginYShift)
         } completion: {[self] _ in
             UIView.transition(with: loginButton, duration: 0.5, options: .transitionCrossDissolve, animations: {
-                let attributedTitleSignUp = makeAttributedString(with: viewModel.presentationObject.signUpButton)
+                let attributedTitleSignUp = makeAttributedString(with: viewModel.presentationObject.switchStateButton)
                 loginButton.setAttributedTitle(attributedTitleSignUp, for: .normal)
             }, completion: nil)
-            UIView.transition(with: signUpButton, duration: 0.5, options: .transitionCrossDissolve, animations: {
+            UIView.transition(with: switchStateButton, duration: 0.5, options: .transitionCrossDissolve, animations: {
                 let attributedTitleLogin = makeAttributedString(with: viewModel.presentationObject.loginButtonIndigo)
-                signUpButton.setAttributedTitle(attributedTitleLogin, for: .normal)
+                switchStateButton.setAttributedTitle(attributedTitleLogin, for: .normal)
             }, completion: nil)
             configure(label: needAccountLabel, with: viewModel.presentationObject.haveAccountText)
+            loginButton.isEnabled = false
         }
         
         UIView.animate(withDuration: 0.5, delay: 0.5) {
@@ -325,7 +341,7 @@ extension LoginViewController {
          forgotPasswordButton,
          needAccountLabel,
          signUpShadowView,
-         signUpButton
+         switchStateButton
         ].forEach {
             $0.translatesAutoresizingMaskIntoConstraints = false
             view.addSubview($0)
@@ -373,7 +389,7 @@ extension LoginViewController {
             forgotPasswordButton.topAnchor.constraint(equalTo: loginButton.bottomAnchor, constant: 20),
             forgotPasswordButton.centerXAnchor.constraint(equalTo: view.centerXAnchor),
             
-            needAccountLabel.bottomAnchor.constraint(equalTo: signUpButton.topAnchor, constant: -20),
+            needAccountLabel.bottomAnchor.constraint(equalTo: switchStateButton.topAnchor, constant: -20),
             needAccountLabel.centerXAnchor.constraint(equalTo: view.centerXAnchor),
             
             signUpShadowView.bottomAnchor.constraint(equalTo: view.safeAreaLayoutGuide.bottomAnchor, constant: -44),
@@ -381,10 +397,10 @@ extension LoginViewController {
             signUpShadowView.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -60),
             signUpShadowView.heightAnchor.constraint(equalToConstant: 44),
             
-            signUpButton.bottomAnchor.constraint(equalTo: view.safeAreaLayoutGuide.bottomAnchor, constant: -44),
-            signUpButton.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 60),
-            signUpButton.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -60),
-            signUpButton.heightAnchor.constraint(equalToConstant: 44)
+            switchStateButton.bottomAnchor.constraint(equalTo: view.safeAreaLayoutGuide.bottomAnchor, constant: -44),
+            switchStateButton.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 60),
+            switchStateButton.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -60),
+            switchStateButton.heightAnchor.constraint(equalToConstant: 44)
         ])
     }
     

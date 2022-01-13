@@ -18,7 +18,17 @@ class SceneDelegate: UIResponder, UIWindowSceneDelegate {
         
         window = UIWindow(windowScene: windowScene)
         
-        let viewModel = LoginViewModel()
+        let loginService: LoginViewModel.LoginService = { state, email, password in
+            let auth = AuthManager.shared
+            switch state {
+            case .login:
+                return auth.signIn(email: email, password: password).eraseToAnyPublisher()
+            case .signup:
+                return auth.createUser(email: email, password: password).eraseToAnyPublisher()
+            }
+        }
+        
+        let viewModel = LoginViewModel(loginService: loginService)
         viewModel.onLogin
             .sink { _ in
                 let vc = UINavigationController(rootViewController: UserViewController())
