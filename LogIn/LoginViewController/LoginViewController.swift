@@ -144,6 +144,13 @@ final class LoginViewController: UIViewController {
         bindToViewModel()
     }
     
+    override func viewDidAppear(_ animated: Bool) {
+        super.viewDidAppear(animated)
+        UIView.animate(withDuration: 2, delay: 0, usingSpringWithDamping: 0.7, initialSpringVelocity: 1, options: .curveEaseOut) {
+            self.backGradientView.transform = CGAffineTransform(translationX: 0, y: 100)
+        }
+    }
+    
     override func touchesBegan(_ touches: Set<UITouch>, with event: UIEvent?) {
         view.endEditing(true)
     }
@@ -167,12 +174,17 @@ final class LoginViewController: UIViewController {
             })
             .store(in: &subscriptions)
         
-        viewModel.transitionToLogin = {[weak self] in
-            self?.transitionToLoginWithAnimation()
-        }
-        viewModel.transitionToSignUp = {[weak self] in
-            self?.transitionToSignUpWithAnimation()
-        }
+        viewModel.transitionToLogin
+            .sink { _ in
+                self.transitionToLoginWithAnimation()
+            }
+            .store(in: &subscriptions)
+        
+        viewModel.transitionToSignUp
+            .sink { _ in
+                self.transitionToSignUpWithAnimation()
+            }
+            .store(in: &subscriptions)
     }
 }
 
@@ -320,7 +332,7 @@ extension LoginViewController {
         }
         
         NSLayoutConstraint.activate([
-            backGradientView.topAnchor.constraint(equalTo: view.topAnchor),
+            backGradientView.topAnchor.constraint(equalTo: view.topAnchor, constant: -100),
             backGradientView.leadingAnchor.constraint(equalTo: view.leadingAnchor),
             backGradientView.trailingAnchor.constraint(equalTo: view.trailingAnchor),
             backGradientView.heightAnchor.constraint(equalToConstant: view.frame.height * 0.85),

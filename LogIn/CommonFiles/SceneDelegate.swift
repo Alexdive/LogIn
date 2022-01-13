@@ -19,10 +19,12 @@ class SceneDelegate: UIResponder, UIWindowSceneDelegate {
         window = UIWindow(windowScene: windowScene)
         
         let viewModel = LoginViewModel()
-        viewModel.onLogin = {[weak self] in
-            let vc = UINavigationController(rootViewController: UserViewController())
-            self?.window?.rootViewController = vc
-        }
+        viewModel.onLogin
+            .sink { _ in
+                let vc = UINavigationController(rootViewController: UserViewController())
+                self.window?.rootViewController = vc
+            }
+            .store(in: &cancellable)
         
         AuthManager.shared.isLoggedIn
             .sink {[weak self] isSignedIn in

@@ -13,29 +13,30 @@ enum LoginState {
     case signup
 }
 
+typealias CombineTrigger = PassthroughSubject<Void, Never>
+
 protocol LoginViewModelType {
     var presentationObject: LoginViewPresentationObject { get }
-    var transitionToLogin: (() -> Void)? { get set }
-    var transitionToSignUp: (() -> Void)? { get set }
-    var onLogin: (() -> Void)? { get set }
+    var transitionToLogin: CombineTrigger { get }
+    var transitionToSignUp: CombineTrigger { get }
+    var onLogin: CombineTrigger { get }
     func transform(input: LoginViewModelInput) -> AnyPublisher<LoginViewModelOutput, Never>
 }
 
 final class LoginViewModel: LoginViewModelType {
     let presentationObject = LoginViewPresentationObject()
-    var transitionToLogin: (() -> Void)?
-    var transitionToSignUp: (() -> Void)?
-    var onLogin: (() -> Void)?
-    
+    var transitionToLogin = CombineTrigger()
+    var transitionToSignUp = CombineTrigger()
+    var onLogin = CombineTrigger()
     
     private let auth = AuthManager.shared
     private var cancellable = Set<AnyCancellable>()
     private var loginState: LoginState = .login {
         didSet {
             if loginState == .login {
-                transitionToLogin?()
+                transitionToLogin.send()
             } else {
-                transitionToSignUp?()
+                transitionToSignUp.send()
             }
         }
     }
@@ -43,16 +44,18 @@ final class LoginViewModel: LoginViewModelType {
     private lazy var completion: (Result<Bool, Error>) -> Void = { [weak self] result in
         switch result {
         case .success(let isLoggedIn):
-            self?.onLogin?()
+            self?.onLogin.send()
+            self?.loginState = .login
         case .failure(let error):
             print(error.localizedDescription)
         }
     }
     
     private func onLoginTap(email: String, passw: String) {
-        if loginState == .login {
+        switch loginState {
+        case .login:
             auth.signIn(email: email, password: passw, completion: completion)
-        } else {
+        case .signup:
             auth.createUser(email: email, password: passw, completion: completion)
         }
     }

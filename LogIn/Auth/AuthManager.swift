@@ -13,7 +13,7 @@ final class AuthManager {
     static let shared = AuthManager()
     private init() {}
     
-    var isLoggedIn = CurrentValueSubject<Bool, Never>(false)
+    private(set) var isLoggedIn = CurrentValueSubject<Bool, Never>(false)
     
     var userEmail: String? {
         Auth.auth().currentUser?.email
