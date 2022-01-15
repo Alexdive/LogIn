@@ -14,36 +14,20 @@ final class LoginViewController: UIViewController {
     
     private var subscriptions = Set<AnyCancellable>()
     
-    private lazy var backGradientView: UIView = {
-        let view = UIView()
-        let gradientLayer = CAGradientLayer()
-        gradientLayer.frame.size = self.view.frame.size
-        gradientLayer.colors = [UIColor.systemIndigo.cgColor,
-                                UIColor.systemPurple.withAlphaComponent(0.5).cgColor]
-        gradientLayer.startPoint = CGPoint(x: 0, y: 1)
-        gradientLayer.endPoint = CGPoint(x: 1, y: 1)
-        view.layer.addSublayer(gradientLayer)
-        view.layer.mask = makeBackWaveMask()
-        return view
-    }()
-    
-    private lazy var backView: UIView = {
-        let view = UIView()
-        let gradientLayer = CAGradientLayer()
-        gradientLayer.frame.size = self.view.frame.size
-        gradientLayer.colors = [UIColor.systemIndigo.cgColor,
-                                UIColor.systemPurple.cgColor,
-                                UIColor.white.cgColor]
-        view.layer.addSublayer(gradientLayer)
-        view.layer.mask = makeWaveMask()
-        return view
-    }()
+    private lazy var loginBackView = LoginBackView()
     
     private lazy var headerLabel: UILabel = {
         let label = UILabel()
         label.textAlignment = .center
         configure(label: label, with: viewModel.presentationObject.loginLabel)
         return label
+    }()
+    
+    private lazy var activityIndicator: UIActivityIndicatorView = {
+        let ai = UIActivityIndicatorView()
+        ai.style = .large
+        ai.color = .white
+        return ai
     }()
     
     private lazy var emailTextField: UITextField = {
@@ -146,9 +130,7 @@ final class LoginViewController: UIViewController {
     
     override func viewDidAppear(_ animated: Bool) {
         super.viewDidAppear(animated)
-        UIView.animate(withDuration: 2, delay: 0, usingSpringWithDamping: 0.7, initialSpringVelocity: 1, options: .curveEaseOut) {
-            self.backGradientView.transform = CGAffineTransform(translationX: 0, y: 100)
-        }
+        loginBackView.animate()
     }
     
     override func touchesBegan(_ touches: Set<UITouch>, with event: UIEvent?) {
@@ -175,20 +157,27 @@ final class LoginViewController: UIViewController {
             .store(in: &subscriptions)
         
         viewModel.transitionToLogin
-            .sink { _ in
+            .sink {[unowned self] _ in
                 self.transitionToLoginWithAnimation()
             }
             .store(in: &subscriptions)
         
         viewModel.transitionToSignUp
-            .sink { _ in
+            .sink {[unowned self] _ in
                 self.transitionToSignUpWithAnimation()
             }
             .store(in: &subscriptions)
         
-        viewModel.showError
-            .sink { message in
-                self.showErrorAlert(message: message)
+        viewModel.errorPublisher
+            .sink {[unowned self] error in
+                self.showErrorAlert(message: error.localizedDescription)
+                self.loginButton.isEnabled = false
+            }
+            .store(in: &subscriptions)
+        
+        viewModel.loadingPublisher
+            .sink {[unowned self] isLoading in
+                isLoading ? self.activityIndicator.startAnimating() : self.activityIndicator.stopAnimating()
             }
             .store(in: &subscriptions)
     }
@@ -329,10 +318,11 @@ extension LoginViewController {
     
     private func setupViews() {
         view.backgroundColor = viewModel.presentationObject.backgroundColor
+        let lrInset: CGFloat = 60
         
-        [backGradientView,
-         backView,
+        [loginBackView,
          headerLabel,
+         activityIndicator,
          emailTextField,
          passwordTextField,
          passwordAgainTextField,
@@ -348,42 +338,40 @@ extension LoginViewController {
         }
         
         NSLayoutConstraint.activate([
-            backGradientView.topAnchor.constraint(equalTo: view.topAnchor, constant: -100),
-            backGradientView.leadingAnchor.constraint(equalTo: view.leadingAnchor),
-            backGradientView.trailingAnchor.constraint(equalTo: view.trailingAnchor),
-            backGradientView.heightAnchor.constraint(equalToConstant: view.frame.height * 0.85),
-            
-            backView.topAnchor.constraint(equalTo: view.topAnchor),
-            backView.leadingAnchor.constraint(equalTo: view.leadingAnchor),
-            backView.trailingAnchor.constraint(equalTo: view.trailingAnchor),
-            backView.heightAnchor.constraint(equalToConstant: view.frame.height * 0.8),
+            loginBackView.topAnchor.constraint(equalTo: view.topAnchor),
+            loginBackView.leadingAnchor.constraint(equalTo: view.leadingAnchor),
+            loginBackView.trailingAnchor.constraint(equalTo: view.trailingAnchor),
+            loginBackView.bottomAnchor.constraint(equalTo: view.bottomAnchor),
             
             headerLabel.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor, constant: 48),
             headerLabel.centerXAnchor.constraint(equalTo: view.centerXAnchor),
             
+            activityIndicator.centerXAnchor.constraint(equalTo: view.centerXAnchor),
+            activityIndicator.topAnchor.constraint(equalTo: headerLabel.bottomAnchor, constant: 2),
+            
             emailTextField.topAnchor.constraint(equalTo: headerLabel.bottomAnchor, constant: 48),
-            emailTextField.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 60),
-            emailTextField.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -60),
+            emailTextField.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: lrInset),
+            emailTextField.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -lrInset),
             emailTextField.heightAnchor.constraint(equalToConstant: 44),
             
             passwordTextField.topAnchor.constraint(equalTo: emailTextField.bottomAnchor, constant: 16),
-            passwordTextField.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 60),
-            passwordTextField.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -60),
+            passwordTextField.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: lrInset),
+            passwordTextField.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -lrInset),
             passwordTextField.heightAnchor.constraint(equalToConstant: 44),
             
             passwordAgainTextField.topAnchor.constraint(equalTo: emailTextField.bottomAnchor, constant: 16),
-            passwordAgainTextField.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 60),
-            passwordAgainTextField.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -60),
+            passwordAgainTextField.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: lrInset),
+            passwordAgainTextField.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -lrInset),
             passwordAgainTextField.heightAnchor.constraint(equalToConstant: 44),
             
             loginShadowView.topAnchor.constraint(equalTo: passwordTextField.bottomAnchor, constant: 44),
-            loginShadowView.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 60),
-            loginShadowView.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -60),
+            loginShadowView.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: lrInset),
+            loginShadowView.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -lrInset),
             loginShadowView.heightAnchor.constraint(equalToConstant: 44),
             
             loginButton.topAnchor.constraint(equalTo: passwordTextField.bottomAnchor, constant: 44),
-            loginButton.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 60),
-            loginButton.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -60),
+            loginButton.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: lrInset),
+            loginButton.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -lrInset),
             loginButton.heightAnchor.constraint(equalToConstant: 44),
             
             forgotPasswordButton.topAnchor.constraint(equalTo: loginButton.bottomAnchor, constant: 20),
@@ -393,49 +381,14 @@ extension LoginViewController {
             needAccountLabel.centerXAnchor.constraint(equalTo: view.centerXAnchor),
             
             signUpShadowView.bottomAnchor.constraint(equalTo: view.safeAreaLayoutGuide.bottomAnchor, constant: -44),
-            signUpShadowView.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 60),
-            signUpShadowView.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -60),
+            signUpShadowView.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: lrInset),
+            signUpShadowView.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -lrInset),
             signUpShadowView.heightAnchor.constraint(equalToConstant: 44),
             
             switchStateButton.bottomAnchor.constraint(equalTo: view.safeAreaLayoutGuide.bottomAnchor, constant: -44),
-            switchStateButton.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 60),
-            switchStateButton.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -60),
+            switchStateButton.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: lrInset),
+            switchStateButton.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -lrInset),
             switchStateButton.heightAnchor.constraint(equalToConstant: 44)
         ])
-    }
-    
-    /// masks for background views
-    private func makeWaveMask() -> CAShapeLayer {
-        let path = UIBezierPath()
-        let width = view.frame.width
-        let height = view.frame.height
-        path.move(to: CGPoint(x: 0.0, y: height * 0.7))
-        path.addCurve(to: CGPoint(x: width, y: height * 0.65),
-                      controlPoint1: CGPoint(x: width * 0.4, y: height * 0.8),
-                      controlPoint2: CGPoint(x: width * 0.66, y: height * 0.6))
-        path.addLine(to: CGPoint(x: width, y: 0))
-        path.addLine(to: CGPoint(x: 0, y: 0))
-        path.close()
-        
-        let shapeLayer = CAShapeLayer()
-        shapeLayer.path = path.cgPath
-        return shapeLayer
-    }
-    
-    private func makeBackWaveMask() -> CAShapeLayer {
-        let path = UIBezierPath()
-        let width = view.frame.width
-        let height = view.frame.height
-        path.move(to: CGPoint(x: 0.0, y: height * 0.68))
-        path.addCurve(to: CGPoint(x: width, y: height * 0.7),
-                      controlPoint1: CGPoint(x: width * 0.45, y: height * 0.83),
-                      controlPoint2: CGPoint(x: width * 0.7, y: height * 0.62))
-        path.addLine(to: CGPoint(x: width, y: 0))
-        path.addLine(to: CGPoint(x: 0, y: 0))
-        path.close()
-        
-        let shapeLayer = CAShapeLayer()
-        shapeLayer.path = path.cgPath
-        return shapeLayer
     }
 }

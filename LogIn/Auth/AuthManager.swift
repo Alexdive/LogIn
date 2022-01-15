@@ -53,7 +53,6 @@ final class AuthManager {
             try Auth.auth().signOut()
         } catch let signOutError as NSError {
             print("Error signing out: %@", signOutError)
-            self._isLoggedIn.send(true)
             return
         }
         self._isLoggedIn.send(false)

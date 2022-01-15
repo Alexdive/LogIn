@@ -20,7 +20,8 @@ protocol LoginViewModelType {
     var transitionToLogin: VoidTrigger { get }
     var transitionToSignUp: VoidTrigger { get }
     var onLogin: VoidTrigger { get }
-    var showError: PassthroughSubject<String, Never> { get }
+    var loadingPublisher: AnyPublisher<Bool, Never> { get }
+    var errorPublisher: AnyPublisher<Error, Never> { get }
     func transform(input: LoginViewModelInput) -> AnyPublisher<LoginViewModelOutput, Never>
 }
 
@@ -29,9 +30,18 @@ final class LoginViewModel: LoginViewModelType {
     var transitionToLogin = VoidTrigger()
     var transitionToSignUp = VoidTrigger()
     var onLogin = VoidTrigger()
-    var showError = PassthroughSubject<String, Never>()
     
     private var cancellable = Set<AnyCancellable>()
+    
+    let activityIndicator = ActivityIndicator()
+    var loadingPublisher: AnyPublisher<Bool, Never> {
+        activityIndicator.loading.eraseToAnyPublisher()
+    }
+    
+    let errorIndicator = ErrorIndicator()
+    var errorPublisher: AnyPublisher<Error, Never> {
+        errorIndicator.errors.eraseToAnyPublisher()
+    }
     
     private var loginState: LoginState = .login {
         didSet {
@@ -43,17 +53,7 @@ final class LoginViewModel: LoginViewModelType {
         }
     }
     
-    private lazy var onErrorCompletion: ((Subscribers.Completion<Error>) -> Void) = { [unowned self] completion in
-        switch completion {
-        case .finished:
-            print("🏁 finished")
-        case .failure(let error):
-            self.showError.send(error.localizedDescription)
-            print("❗️ failure: \(error.localizedDescription)")
-        }
-    }
-    
-    private lazy var onValueCompletion: () -> Void = { [unowned self] in
+    private lazy var receiveValueCompletion: () -> Void = {[unowned self] in
         self.onLogin.send()
         self.loginState = .login
     }
@@ -71,6 +71,14 @@ final class LoginViewModel: LoginViewModelType {
         } else {
             loginState = .login
         }
+    }
+    
+    private func auth(email: String, password:String) {
+        self.loginService(self.loginState, email, password)
+            .trackActivity(activityIndicator)
+            .trackError(errorIndicator)
+            .sink(receiveValue: receiveValueCompletion)
+            .store(in: &cancellable)
     }
     
     func transform(input: LoginViewModelInput) -> AnyPublisher<LoginViewModelOutput, Never> {
@@ -92,12 +100,19 @@ final class LoginViewModel: LoginViewModelType {
             .sink { self.onSwitchStateTap() }
             .store(in: &cancellable)
         
+        var emailString = ""
+        var passString = ""
+        
+        password.sink { passString = $0  }
+        .store(in: &cancellable)
+        
+        email.sink { emailString = $0 }
+        .store(in: &cancellable)
+        
         input.loginTap
-            .combineLatest(email, password)
-            .flatMap { [unowned self] _, email, password in
-                self.loginService(self.loginState, email, password)
-            }
-            .sink(receiveCompletion: onErrorCompletion, receiveValue: onValueCompletion)
+            .sink(receiveValue: { _ in
+                self.auth(email: emailString, password: passString)
+            })
             .store(in: &cancellable)
         
         let isValidEmail = email
