@@ -110,9 +110,9 @@ final class LoginViewModel: LoginViewModelType {
         .store(in: &cancellable)
         
         input.loginTap
-            .sink(receiveValue: { _ in
+            .sink { 
                 self.auth(email: emailString, password: passString)
-            })
+            }
             .store(in: &cancellable)
         
         let isValidEmail = email

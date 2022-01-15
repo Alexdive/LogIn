@@ -170,8 +170,8 @@ final class LoginViewController: UIViewController {
         
         viewModel.errorPublisher
             .sink {[unowned self] error in
-                self.showErrorAlert(message: error.localizedDescription)
-                self.loginButton.isEnabled = false
+                self.showErrorAlert(message: error.localizedDescription, delay: 0.5)
+                self.animateButtonOnError()
             }
             .store(in: &subscriptions)
         
@@ -182,19 +182,21 @@ final class LoginViewController: UIViewController {
             .store(in: &subscriptions)
     }
     
-    private func showErrorAlert(message: String) {
+    private func showErrorAlert(message: String, delay: Double) {
         let alertController = UIAlertController(title: "Error", message: message, preferredStyle: .alert)
         let action = UIAlertAction(title: "OK", style: .default)
         alertController.addAction(action)
         alertController.view.layer.cornerRadius = 22
         alertController.view.clipsToBounds = true
-        self.present(alertController, animated: true, completion: nil)
+        DispatchQueue.main.asyncAfter(deadline: .now() + delay) {
+            self.present(alertController, animated: true, completion: nil)
+        }
     }
 }
 
 // MARK: - UI
 extension LoginViewController {
-    
+    // MARK: - Helper methods
     private func makeAttributedString(with config: TextConfig) -> NSAttributedString{
         return NSAttributedString(string: config.text,
                                   attributes: [.foregroundColor : config.textColor,
@@ -225,6 +227,7 @@ extension LoginViewController {
         view.layer.shadowOffset = CGSize(width: 5, height: 5)
     }
     
+    // MARK: - Animated Transitions
     private func transitionToLoginWithAnimation() {
         let attributedEmptyTitle = makeAttributedString(with: viewModel.presentationObject.empty)
         
@@ -316,6 +319,17 @@ extension LoginViewController {
         }
     }
     
+    private func animateButtonOnError() {
+        loginButton.transform = CGAffineTransform(translationX: 30, y: 0)
+        loginShadowView.transform = CGAffineTransform(translationX: 30, y: 0)
+        loginButton.isEnabled = false
+        UIView.animate(withDuration: 1, delay: 0, usingSpringWithDamping: 0.1, initialSpringVelocity: 15, options: .curveLinear) {
+            self.loginButton.transform = .identity
+            self.loginShadowView.transform = .identity
+        } 
+    }
+    
+    // MARK: - Layout
     private func setupViews() {
         view.backgroundColor = viewModel.presentationObject.backgroundColor
         let lrInset: CGFloat = 60
