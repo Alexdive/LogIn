@@ -144,8 +144,8 @@ final class LoginViewController: UIViewController {
         let input = LoginViewModelInput(email: emailTextField.textPublisher,
                                         pass: passwordTextField.textPublisher,
                                         passAgain: passwordAgainTextField.textPublisher,
-                                        switchStateTap: switchStateButton.publisher(for: .touchUpInside).eraseToAnyPublisher(),
-                                        loginTap: loginButton.publisher(for: .touchUpInside).eraseToAnyPublisher())
+                                        switchStateTap: switchStateButton.publisher(for: .touchUpInside),
+                                        loginTap: loginButton.publisher(for: .touchUpInside))
         
         viewModel.transform(input: input)
             .sink(receiveValue: {[unowned self] output in
@@ -177,6 +177,7 @@ final class LoginViewController: UIViewController {
         
         viewModel.loadingPublisher
             .sink {[unowned self] isLoading in
+                view.endEditing(true)
                 isLoading ? self.activityIndicator.startAnimating() : self.activityIndicator.stopAnimating()
             }
             .store(in: &subscriptions)
