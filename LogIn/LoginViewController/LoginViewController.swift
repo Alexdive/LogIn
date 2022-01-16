@@ -97,7 +97,7 @@ final class LoginViewController: UIViewController {
         return button
     }()
     
-    private lazy var loginShadowView: UIView = {
+    private lazy var loginButtonShadowView: UIView = {
         let view = UIView()
         view.backgroundColor = .systemIndigo
         view.layer.cornerRadius = 22
@@ -105,7 +105,7 @@ final class LoginViewController: UIViewController {
         return view
     }()
     
-    private lazy var signUpShadowView: UIView = {
+    private lazy var switchStateButtonShadowView: UIView = {
         let view = UIView()
         view.backgroundColor = .systemGray6
         view.layer.cornerRadius = 22
@@ -145,7 +145,8 @@ final class LoginViewController: UIViewController {
                                         pass: passwordTextField.textPublisher,
                                         passAgain: passwordAgainTextField.textPublisher,
                                         switchStateTap: switchStateButton.publisher(for: .touchUpInside),
-                                        loginTap: loginButton.publisher(for: .touchUpInside))
+                                        loginTap: loginButton.publisher(for: .touchUpInside),
+                                        forgotPasswordTap: forgotPasswordButton.publisher(for: .touchUpInside))
         
         viewModel.transform(input: input)
             .sink(receiveValue: {[unowned self] output in
@@ -168,10 +169,22 @@ final class LoginViewController: UIViewController {
             }
             .store(in: &subscriptions)
         
+        viewModel.transitionToRestorePassword
+            .sink {[unowned self] _ in
+                self.transitionToRestorePasswordWithAnimation()
+            }
+            .store(in: &subscriptions)
+        
+        viewModel.messagePublisher
+            .sink {[unowned self] message in
+                self.showAlert(title: viewModel.presentationObject.successTitle ,message: message, delay: 0.5)
+            }
+            .store(in: &subscriptions)
+        
         viewModel.errorPublisher
             .sink {[unowned self] error in
-                self.showErrorAlert(message: error.localizedDescription, delay: 0.5)
-                self.animateButtonOnError()
+                self.showAlert(title: viewModel.presentationObject.errorTitle ,message: error.localizedDescription, delay: 0.5)
+                self.animateHeaderOnError()
             }
             .store(in: &subscriptions)
         
@@ -183,8 +196,8 @@ final class LoginViewController: UIViewController {
             .store(in: &subscriptions)
     }
     
-    private func showErrorAlert(message: String, delay: Double) {
-        let alertController = UIAlertController(title: "Error", message: message, preferredStyle: .alert)
+    private func showAlert(title: String, message: String, delay: Double) {
+        let alertController = UIAlertController(title: title, message: message, preferredStyle: .alert)
         let action = UIAlertAction(title: "OK", style: .default)
         alertController.addAction(action)
         alertController.view.layer.cornerRadius = 22
@@ -192,6 +205,9 @@ final class LoginViewController: UIViewController {
         DispatchQueue.main.asyncAfter(deadline: .now() + delay) {
             self.present(alertController, animated: true, completion: nil)
         }
+    }
+    deinit {
+        print(self.description, "deinit")
     }
 }
 
@@ -229,45 +245,46 @@ extension LoginViewController {
     }
     
     // MARK: - Animated Transitions
-    private func transitionToLoginWithAnimation() {
+    private func transitionToEmptyButtonTitle() {
         let attributedEmptyTitle = makeAttributedString(with: viewModel.presentationObject.empty)
-        
+        UIView.transition(with: loginButton, duration: 0.3, options: .transitionCrossDissolve, animations: {
+            self.loginButton.setAttributedTitle(attributedEmptyTitle, for: .normal)
+        })
+        UIView.transition(with: switchStateButton, duration: 0.3, options: .transitionCrossDissolve, animations: {
+            self.switchStateButton.setAttributedTitle(attributedEmptyTitle, for: .normal)
+        })
+    }
+    
+    private func transitionToLoginWithAnimation() {
         UIView.animate(withDuration: 0.5, delay: 0, options: [.curveEaseInOut]) {[self] in
             switchStateButton.transform = .identity
-            signUpShadowView.transform = .identity
-            
+            switchStateButtonShadowView.transform = .identity
             passwordAgainTextField.alpha = 0
         } completion: {[self] _ in
             passwordAgainTextField.isHidden = true
             forgotPasswordButton.isHidden = false
-            loginButton.isHidden = false
-            loginShadowView.isHidden = false
-            
-            UIView.transition(with: loginButton, duration: 0.3, options: .transitionCrossDissolve, animations: {
-                loginButton.setAttributedTitle(attributedEmptyTitle, for: .normal)
-            }, completion: nil)
-            UIView.transition(with: switchStateButton, duration: 0.3, options: .transitionCrossDissolve, animations: {
-                switchStateButton.setAttributedTitle(attributedEmptyTitle, for: .normal)
-            }, completion: nil)
+            transitionToEmptyButtonTitle()
         }
         
         UIView.animate(withDuration: 0.5, delay: 0.3) {[self] in
             loginButton.transform = .identity
-            loginShadowView.transform = .identity
+            loginButtonShadowView.transform = .identity
             passwordAgainTextField.transform = .identity
             
+            passwordTextField.alpha = 1
             forgotPasswordButton.alpha = 1
             needAccountLabel.alpha = 0
         } completion: {[self] _ in
             UIView.transition(with: loginButton, duration: 0.5, options: .transitionCrossDissolve, animations: {
                 let attributedTitleLogin = makeAttributedString(with: viewModel.presentationObject.loginButton)
                 loginButton.setAttributedTitle(attributedTitleLogin, for: .normal)
-            }, completion: nil)
+            })
             UIView.transition(with: switchStateButton, duration: 0.5, options: .transitionCrossDissolve, animations: {
                 let attributedTitleSignUp = makeAttributedString(with: viewModel.presentationObject.switchStateButtonIndigo)
                 switchStateButton.setAttributedTitle(attributedTitleSignUp, for: .normal)
-            }, completion: nil)
+            })
             configure(label: needAccountLabel, with: viewModel.presentationObject.needAccountText)
+            loginButton.isEnabled = false
         }
         
         UIView.animate(withDuration: 0.5, delay: 0.8) {
@@ -279,34 +296,28 @@ extension LoginViewController {
         passwordAgainTextField.isHidden = false
         
         let loginYShift: CGFloat = 44 + 16
-        let attributedEmptyTitle = makeAttributedString(with: viewModel.presentationObject.empty)
         
         UIView.animate(withDuration: 0.5) {[self] in
             forgotPasswordButton.alpha = 0
         } completion: {[self] _ in
             forgotPasswordButton.isHidden = true
-            UIView.transition(with: loginButton, duration: 0.3, options: .transitionCrossDissolve, animations: {
-                loginButton.setAttributedTitle(attributedEmptyTitle, for: .normal)
-            }, completion: nil)
-            UIView.transition(with: switchStateButton, duration: 0.3, options: .transitionCrossDissolve, animations: {
-                switchStateButton.setAttributedTitle(attributedEmptyTitle, for: .normal)
-            }, completion: nil)
+            transitionToEmptyButtonTitle()
         }
         
         UIView.animate(withDuration: 0.5, delay: 0.3, options: [.curveEaseInOut]) {[self] in
             needAccountLabel.alpha = 0
             loginButton.transform = CGAffineTransform(translationX: 0, y: loginYShift)
-            loginShadowView.transform = CGAffineTransform(translationX: 0, y: loginYShift)
+            loginButtonShadowView.transform = CGAffineTransform(translationX: 0, y: loginYShift)
             passwordAgainTextField.transform = CGAffineTransform(translationX: 0, y: loginYShift)
         } completion: {[self] _ in
             UIView.transition(with: loginButton, duration: 0.5, options: .transitionCrossDissolve, animations: {
                 let attributedTitleSignUp = makeAttributedString(with: viewModel.presentationObject.switchStateButton)
                 loginButton.setAttributedTitle(attributedTitleSignUp, for: .normal)
-            }, completion: nil)
+            })
             UIView.transition(with: switchStateButton, duration: 0.5, options: .transitionCrossDissolve, animations: {
                 let attributedTitleLogin = makeAttributedString(with: viewModel.presentationObject.loginButtonIndigo)
                 switchStateButton.setAttributedTitle(attributedTitleLogin, for: .normal)
-            }, completion: nil)
+            })
             configure(label: needAccountLabel, with: viewModel.presentationObject.haveAccountText)
             loginButton.isEnabled = false
         }
@@ -320,13 +331,38 @@ extension LoginViewController {
         }
     }
     
-    private func animateButtonOnError() {
-        loginButton.transform = CGAffineTransform(translationX: 30, y: 0)
-        loginShadowView.transform = CGAffineTransform(translationX: 30, y: 0)
+    private func transitionToRestorePasswordWithAnimation() {
+        let loginYShift: CGFloat = 44 + 16
+        
+        UIView.animate(withDuration: 0.5) { [self] in
+            passwordTextField.alpha = 0
+            forgotPasswordButton.alpha = 0
+        } completion: { _ in
+            self.transitionToEmptyButtonTitle()
+        }
+        
+        UIView.animate(withDuration: 0.5, delay: 0.3, options: [.curveEaseInOut]) {[self] in
+            loginButton.transform = CGAffineTransform(translationX: 0, y: -loginYShift)
+            loginButtonShadowView.transform = CGAffineTransform(translationX: 0, y: -loginYShift)
+        } completion: {[self] _ in
+            UIView.transition(with: loginButton, duration: 0.5, options: .transitionCrossDissolve, animations: {
+                let attributedTitleSignUp = makeAttributedString(with: viewModel.presentationObject.sendEmail)
+                loginButton.setAttributedTitle(attributedTitleSignUp, for: .normal)
+            })
+            UIView.transition(with: switchStateButton, duration: 0.5, options: .transitionCrossDissolve, animations: {
+                let attributedTitleLogin = makeAttributedString(with: viewModel.presentationObject.loginButtonIndigo)
+                switchStateButton.setAttributedTitle(attributedTitleLogin, for: .normal)
+            })
+            configure(label: needAccountLabel, with: viewModel.presentationObject.haveAccountText)
+//            loginButton.isEnabled = false
+        }
+    }
+    
+    private func animateHeaderOnError() {
+        headerLabel.transform = CGAffineTransform(translationX: 30, y: 0)
         loginButton.isEnabled = false
         UIView.animate(withDuration: 1, delay: 0, usingSpringWithDamping: 0.1, initialSpringVelocity: 15, options: .curveLinear) {
-            self.loginButton.transform = .identity
-            self.loginShadowView.transform = .identity
+            self.headerLabel.transform = .identity
         } 
     }
     
@@ -334,6 +370,7 @@ extension LoginViewController {
     private func setupViews() {
         view.backgroundColor = viewModel.presentationObject.backgroundColor
         let lrInset: CGFloat = 60
+        let height: CGFloat = 44
         
         [loginBackView,
          headerLabel,
@@ -341,11 +378,11 @@ extension LoginViewController {
          emailTextField,
          passwordTextField,
          passwordAgainTextField,
-         loginShadowView,
+         loginButtonShadowView,
          loginButton,
          forgotPasswordButton,
          needAccountLabel,
-         signUpShadowView,
+         switchStateButtonShadowView,
          switchStateButton
         ].forEach {
             $0.translatesAutoresizingMaskIntoConstraints = false
@@ -358,7 +395,7 @@ extension LoginViewController {
             loginBackView.trailingAnchor.constraint(equalTo: view.trailingAnchor),
             loginBackView.bottomAnchor.constraint(equalTo: view.bottomAnchor),
             
-            headerLabel.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor, constant: 48),
+            headerLabel.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor, constant: 44),
             headerLabel.centerXAnchor.constraint(equalTo: view.centerXAnchor),
             
             activityIndicator.centerXAnchor.constraint(equalTo: view.centerXAnchor),
@@ -367,27 +404,27 @@ extension LoginViewController {
             emailTextField.topAnchor.constraint(equalTo: headerLabel.bottomAnchor, constant: 48),
             emailTextField.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: lrInset),
             emailTextField.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -lrInset),
-            emailTextField.heightAnchor.constraint(equalToConstant: 44),
+            emailTextField.heightAnchor.constraint(equalToConstant: height),
             
             passwordTextField.topAnchor.constraint(equalTo: emailTextField.bottomAnchor, constant: 16),
             passwordTextField.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: lrInset),
             passwordTextField.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -lrInset),
-            passwordTextField.heightAnchor.constraint(equalToConstant: 44),
+            passwordTextField.heightAnchor.constraint(equalToConstant: height),
             
             passwordAgainTextField.topAnchor.constraint(equalTo: emailTextField.bottomAnchor, constant: 16),
             passwordAgainTextField.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: lrInset),
             passwordAgainTextField.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -lrInset),
-            passwordAgainTextField.heightAnchor.constraint(equalToConstant: 44),
+            passwordAgainTextField.heightAnchor.constraint(equalToConstant: height),
             
-            loginShadowView.topAnchor.constraint(equalTo: passwordTextField.bottomAnchor, constant: 44),
-            loginShadowView.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: lrInset),
-            loginShadowView.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -lrInset),
-            loginShadowView.heightAnchor.constraint(equalToConstant: 44),
+            loginButtonShadowView.topAnchor.constraint(equalTo: passwordTextField.bottomAnchor, constant: 44),
+            loginButtonShadowView.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: lrInset),
+            loginButtonShadowView.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -lrInset),
+            loginButtonShadowView.heightAnchor.constraint(equalToConstant: height),
             
             loginButton.topAnchor.constraint(equalTo: passwordTextField.bottomAnchor, constant: 44),
             loginButton.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: lrInset),
             loginButton.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -lrInset),
-            loginButton.heightAnchor.constraint(equalToConstant: 44),
+            loginButton.heightAnchor.constraint(equalToConstant: height),
             
             forgotPasswordButton.topAnchor.constraint(equalTo: loginButton.bottomAnchor, constant: 20),
             forgotPasswordButton.centerXAnchor.constraint(equalTo: view.centerXAnchor),
@@ -395,15 +432,15 @@ extension LoginViewController {
             needAccountLabel.bottomAnchor.constraint(equalTo: switchStateButton.topAnchor, constant: -20),
             needAccountLabel.centerXAnchor.constraint(equalTo: view.centerXAnchor),
             
-            signUpShadowView.bottomAnchor.constraint(equalTo: view.safeAreaLayoutGuide.bottomAnchor, constant: -44),
-            signUpShadowView.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: lrInset),
-            signUpShadowView.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -lrInset),
-            signUpShadowView.heightAnchor.constraint(equalToConstant: 44),
+            switchStateButtonShadowView.bottomAnchor.constraint(equalTo: view.safeAreaLayoutGuide.bottomAnchor, constant: -44),
+            switchStateButtonShadowView.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: lrInset),
+            switchStateButtonShadowView.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -lrInset),
+            switchStateButtonShadowView.heightAnchor.constraint(equalToConstant: height),
             
             switchStateButton.bottomAnchor.constraint(equalTo: view.safeAreaLayoutGuide.bottomAnchor, constant: -44),
             switchStateButton.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: lrInset),
             switchStateButton.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -lrInset),
-            switchStateButton.heightAnchor.constraint(equalToConstant: 44)
+            switchStateButton.heightAnchor.constraint(equalToConstant: height)
         ])
     }
 }

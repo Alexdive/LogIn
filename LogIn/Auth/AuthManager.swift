@@ -48,6 +48,19 @@ final class AuthManager {
         }
     }
     
+    func passwordReset(with email: String) -> Future<Void, Error> {
+        return Future { promise in
+            Auth.auth().sendPasswordReset(withEmail: email) { (error) in
+                if let error = error {
+                    promise(.failure(error))
+                    return
+                } else {
+                    promise(.success(()))
+                }
+            }
+        }
+    }
+    
     func signOut() {
         do {
             try Auth.auth().signOut()

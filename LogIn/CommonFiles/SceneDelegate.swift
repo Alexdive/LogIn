@@ -25,6 +25,8 @@ class SceneDelegate: UIResponder, UIWindowSceneDelegate {
                 return auth.signIn(email: email, password: password).eraseToAnyPublisher()
             case .signup:
                 return auth.createUser(email: email, password: password).eraseToAnyPublisher()
+            case .restorePassword:
+                return auth.passwordReset(with: email).eraseToAnyPublisher()
             }
         }
         
