@@ -13,44 +13,72 @@ enum LoginState {
     case signup
 }
 
+typealias VoidTrigger = PassthroughSubject<Void, Never>
+
 protocol LoginViewModelType {
     var presentationObject: LoginViewPresentationObject { get }
+    var transitionToLogin: VoidTrigger { get }
+    var transitionToSignUp: VoidTrigger { get }
+    var onLogin: VoidTrigger { get }
+    var loadingPublisher: AnyPublisher<Bool, Never> { get }
+    var errorPublisher: AnyPublisher<Error, Never> { get }
     func transform(input: LoginViewModelInput) -> AnyPublisher<LoginViewModelOutput, Never>
-    var transitionToLogin: (() -> Void)? { get set }
-    var transitionToSignUp: (() -> Void)? { get set }
 }
 
 final class LoginViewModel: LoginViewModelType {
-    
-    var transitionToLogin: (() -> Void)?
-    var transitionToSignUp: (() -> Void)?
     let presentationObject = LoginViewPresentationObject()
+    var transitionToLogin = VoidTrigger()
+    var transitionToSignUp = VoidTrigger()
+    var onLogin = VoidTrigger()
     
     private var cancellable = Set<AnyCancellable>()
+    
+    let activityIndicator = ActivityIndicator()
+    var loadingPublisher: AnyPublisher<Bool, Never> {
+        activityIndicator.loading.eraseToAnyPublisher()
+    }
+    
+    let errorIndicator = ErrorIndicator()
+    var errorPublisher: AnyPublisher<Error, Never> {
+        errorIndicator.errors.eraseToAnyPublisher()
+    }
+    
     private var loginState: LoginState = .login {
         didSet {
             if loginState == .login {
-                transitionToLogin?()
+                transitionToLogin.send()
             } else {
-                transitionToSignUp?()
+                transitionToSignUp.send()
             }
         }
     }
     
-    private func onLoginTap(email: String, passw: String) {
-        if loginState == .login {
-            print("Log in", email, passw)
-        } else {
-            print("Sign up", email, passw)
-        }
+    private lazy var receiveValueCompletion: () -> Void = {[unowned self] in
+        self.onLogin.send()
+        self.loginState = .login
     }
     
-    private func onSignUpTap() {
+    typealias LoginService = (_ state: LoginState, _ email: String, _ password: String) -> AnyPublisher<Void, Error>
+    let loginService: LoginService
+    
+    init(loginService: @escaping LoginService) {
+        self.loginService = loginService
+    }
+    
+    private func onSwitchStateTap() {
         if loginState == .login {
             loginState = .signup
         } else {
             loginState = .login
         }
+    }
+    
+    private func auth(email: String, password:String) {
+        self.loginService(self.loginState, email, password)
+            .trackActivity(activityIndicator)
+            .trackError(errorIndicator)
+            .sink(receiveValue: receiveValueCompletion)
+            .store(in: &cancellable)
     }
     
     func transform(input: LoginViewModelInput) -> AnyPublisher<LoginViewModelOutput, Never> {
@@ -68,23 +96,23 @@ final class LoginViewModel: LoginViewModelType {
             .removeDuplicates()
             .compactMap { $0 }
         
+        input.switchStateTap
+            .sink { self.onSwitchStateTap() }
+            .store(in: &cancellable)
+        
         var emailString = ""
-        var passwString = ""
+        var passString = ""
         
-        email
-            .sink { emailString = $0 }
-            .store(in: &cancellable)
+        password.sink { passString = $0  }
+        .store(in: &cancellable)
         
-        password
-            .sink { passwString = $0 }
-            .store(in: &cancellable)
-        
-        input.signUpTap
-            .sink { self.onSignUpTap() }
-            .store(in: &cancellable)
+        email.sink { emailString = $0 }
+        .store(in: &cancellable)
         
         input.loginTap
-            .sink { self.onLoginTap(email: emailString, passw: passwString) }
+            .sink { 
+                self.auth(email: emailString, password: passString)
+            }
             .store(in: &cancellable)
         
         let isValidEmail = email

@@ -53,6 +53,10 @@ struct LoginViewPresentationObject {
                                  textColor: .white,
                                  font: AppConstants.Fonts.avenirNext18)
     
+    let loginButtonIndigo = TextConfig(text: "Login",
+                                 textColor: .systemIndigo,
+                                 font: AppConstants.Fonts.avenirNext18)
+    
     let forgotPasswButton = TextConfig(text: "Forgot your password?",
                                  textColor: .white,
                                  font: AppConstants.Fonts.avenirNext13)
@@ -61,8 +65,12 @@ struct LoginViewPresentationObject {
                                  textColor: .systemIndigo,
                                  font: AppConstants.Fonts.avenirNext13)
     
-    let signUpButton = TextConfig(text: "Sign Up",
+    let switchStateButton = TextConfig(text: "Sign Up",
                                  textColor: .white,
+                                 font: AppConstants.Fonts.avenirNext18)
+    
+    let switchStateButtonIndigo = TextConfig(text: "Sign Up",
+                                 textColor: .systemIndigo,
                                  font: AppConstants.Fonts.avenirNext18)
     
     let empty = TextConfig(text: "",
@@ -78,7 +86,7 @@ struct LoginViewModelInput {
     let email: AnyPublisher<String?, Never>
     let pass: AnyPublisher<String?, Never>
     let passAgain: AnyPublisher<String?, Never>
-    let signUpTap: AnyPublisher<Void, Never>
+    let switchStateTap: AnyPublisher<Void, Never>
     let loginTap: AnyPublisher<Void, Never>
 }
 

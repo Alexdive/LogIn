@@ -148,7 +148,7 @@ extension UIControl {
         }
     }
     
-    func publisher(for event: UIControl.Event) -> UIControl.InteractionPublisher {
-        return InteractionPublisher(control: self, event: event)
+    func publisher(for event: UIControl.Event) -> AnyPublisher<Void, Never> {
+        return InteractionPublisher(control: self, event: event).eraseToAnyPublisher()
     }
 }
