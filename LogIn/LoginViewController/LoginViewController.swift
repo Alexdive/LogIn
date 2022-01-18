@@ -61,7 +61,6 @@ final class LoginViewController: UIViewController {
     private lazy var loginButton: UIButton = {
         let button = UIButton()
         button.layer.cornerRadius = viewModel.presentationObject.cornerRadius
-        addShadowTo(button)
         let attributedTitle = makeAttributedString(with: viewModel.presentationObject.loginButton)
         button.setAttributedTitle(attributedTitle, for: .normal)
         button.setBackgroundColor(.systemIndigo, forState: .normal)
@@ -89,7 +88,6 @@ final class LoginViewController: UIViewController {
     private lazy var switchStateButton: UIButton = {
         let button = UIButton()
         button.layer.cornerRadius = viewModel.presentationObject.cornerRadius
-        addShadowTo(button)
         let attributedTitle = makeAttributedString(with: viewModel.presentationObject.switchStateButtonIndigo)
         button.setAttributedTitle(attributedTitle, for: .normal)
         button.setBackgroundColor(.systemGray6, forState: .normal)

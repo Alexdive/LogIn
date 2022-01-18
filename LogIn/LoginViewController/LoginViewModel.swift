@@ -115,19 +115,14 @@ final class LoginViewModel: LoginViewModelType {
             .sink { self.onSwitchStateTap() }
             .store(in: &cancellable)
         
-        var emailString = ""
-        var passString = ""
-        
-        password.sink { passString = $0  }
-        .store(in: &cancellable)
-        
-        email.sink { emailString = $0 }
-        .store(in: &cancellable)
+        let credentials = email
+            .combineLatest(password)
+            .eraseToAnyPublisher()
         
         input.loginTap
-            .sink {
-                self.auth(email: emailString, password: passString)
-            }
+            .withLatestFrom(credentials)
+            .map { $1 }
+            .sink { self.auth(email: $0.0, password: $0.1) }
             .store(in: &cancellable)
         
         input.forgotPasswordTap
