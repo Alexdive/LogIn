@@ -43,6 +43,7 @@ final class LoginViewController: UIViewController {
         configure(textfield: tf, with: viewModel.presentationObject.passwordTF)
         tf.isSecureTextEntry = true
         tf.textContentType = .oneTimeCode
+        tf.enablePasswordHideToggle()
         return tf
     }()
     
@@ -51,6 +52,7 @@ final class LoginViewController: UIViewController {
         configure(textfield: tf, with: viewModel.presentationObject.passwordAgainTF)
         tf.isSecureTextEntry = true
         tf.textContentType = .oneTimeCode
+        tf.enablePasswordHideToggle()
         tf.isHidden = true
         tf.alpha = 0
         return tf
@@ -242,6 +244,15 @@ extension LoginViewController {
         view.layer.shadowRadius = 8
         view.layer.shadowOpacity = 0.2
         view.layer.shadowOffset = CGSize(width: 5, height: 5)
+        view.layer.rasterizationScale = UIScreen.main.scale
+        view.layer.shouldRasterize = true
+    }
+    
+    private func resetPasswordTextFields() {
+        passwordTextField.text = nil
+        passwordAgainTextField.text = nil
+        passwordTextField.leftView?.tintColor = .systemGray2
+        passwordAgainTextField.leftView?.tintColor = .systemGray2
     }
     
     // MARK: - Animated Transitions
@@ -260,6 +271,7 @@ extension LoginViewController {
             switchStateButton.transform = .identity
             switchStateButtonShadowView.transform = .identity
             passwordAgainTextField.alpha = 0
+            resetPasswordTextFields()
         } completion: {[self] _ in
             passwordAgainTextField.isHidden = true
             forgotPasswordButton.isHidden = false
@@ -299,6 +311,7 @@ extension LoginViewController {
         
         UIView.animate(withDuration: 0.5) {[self] in
             forgotPasswordButton.alpha = 0
+            resetPasswordTextFields()
         } completion: {[self] _ in
             forgotPasswordButton.isHidden = true
             transitionToEmptyButtonTitle()
@@ -354,7 +367,6 @@ extension LoginViewController {
                 switchStateButton.setAttributedTitle(attributedTitleLogin, for: .normal)
             })
             configure(label: needAccountLabel, with: viewModel.presentationObject.haveAccountText)
-//            loginButton.isEnabled = false
         }
     }
     

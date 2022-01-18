@@ -30,6 +30,23 @@ extension UITextField {
     }
 }
 
+extension UITextField {
+    func enablePasswordHideToggle() {
+        let button = UIButton(type: .custom)
+        button.setImage(UIImage(systemName: "eye"), for: .normal)
+        button.setImage(UIImage(systemName: "eye.slash"), for: .selected)
+        button.imageEdgeInsets = UIEdgeInsets(top: 0, left: -12, bottom: 0, right: 4)
+        button.addTarget(self, action: #selector(togglePasswordView), for: .touchUpInside)
+        rightView = button
+        rightViewMode = .always
+    }
+    
+    @objc func togglePasswordView(_ sender: Any) {
+        isSecureTextEntry.toggle()
+        (rightView as? UIButton)?.isSelected.toggle()
+    }
+}
+
 extension UIButton {
     func setBackgroundColor(_ color: UIColor?, forState: UIControl.State) {
         guard let color = color else { return }

@@ -48,6 +48,7 @@ final class LoginViewModel: LoginViewModelType {
         errorIndicator.errors.eraseToAnyPublisher()
     }
     
+    @Published
     private var loginState: LoginState = .login {
         didSet {
             switch loginState {
@@ -124,7 +125,7 @@ final class LoginViewModel: LoginViewModelType {
         .store(in: &cancellable)
         
         input.loginTap
-            .sink { 
+            .sink {
                 self.auth(email: emailString, password: passString)
             }
             .store(in: &cancellable)
@@ -144,11 +145,11 @@ final class LoginViewModel: LoginViewModelType {
         let isSamePassword = password.combineLatest(passwordAgain)
             .map { $0 == $1 }
         
-        let output: AnyPublisher<LoginViewModelOutput, Never> = isValidEmail
-            .combineLatest(isValidPassword, isSamePassword)
-            .map { isValidEmail, isValidPassword, isSamePassword in
+        let output: AnyPublisher<LoginViewModelOutput, Never> = $loginState
+            .combineLatest(isValidEmail, isValidPassword, isSamePassword)
+            .map { state, isValidEmail, isValidPassword, isSamePassword in
                 var loginEnabled = false
-                switch self.loginState {
+                switch state {
                 case .login:
                     loginEnabled = isValidEmail && isValidPassword
                 case .signup:
