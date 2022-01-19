@@ -18,34 +18,40 @@ class SceneDelegate: UIResponder, UIWindowSceneDelegate {
         
         window = UIWindow(windowScene: windowScene)
         
-        let loginService: LoginViewModel.LoginService = { state, email, password in
-            let auth = AuthManager.shared
-            switch state {
-            case .login:
-                return auth.signIn(email: email, password: password).eraseToAnyPublisher()
-            case .signup:
-                return auth.createUser(email: email, password: password).eraseToAnyPublisher()
-            }
-        }
-        
-        let viewModel = LoginViewModel(loginService: loginService)
-        viewModel.onLogin
-            .sink { _ in
-                let vc = UINavigationController(rootViewController: UserViewController())
-                self.window?.rootViewController = vc
-            }
-            .store(in: &cancellable)
-        
         AuthManager.shared.isLoggedIn
-            .sink {[weak self] isSignedIn in
-                if !isSignedIn {
-                    let loginVC = LoginViewController(viewModel: viewModel)
-                    self?.window?.rootViewController = loginVC
+            .sink {[unowned self] isLoggedIn in
+                if !isLoggedIn {
+                    self.window?.rootViewController = self.setupLoginVC()
                 }
             }
             .store(in: &cancellable)
         
         window?.makeKeyAndVisible()
+    }
+    
+    private func setupLoginVC() -> UIViewController {
+        let auth = AuthManager.shared
+        
+        let loginService: LoginViewModel.LoginService = { [unowned auth] state, email, password in
+            switch state {
+            case .login:
+                return auth.signIn(email: email, password: password).eraseToAnyPublisher()
+            case .signup:
+                return auth.createUser(email: email, password: password).eraseToAnyPublisher()
+            case .restorePassword:
+                return auth.passwordReset(with: email).eraseToAnyPublisher()
+            }
+        }
+        
+        let viewModel = LoginViewModel(loginService: loginService)
+        viewModel.onLogin
+            .sink {[unowned self] _ in
+                let vc = UINavigationController(rootViewController: UserViewController())
+                self.window?.rootViewController = vc
+            }
+            .store(in: &cancellable)
+        
+        return LoginViewController(viewModel: viewModel)
     }
 }
 

@@ -53,6 +53,10 @@ struct LoginViewPresentationObject {
                                  textColor: .white,
                                  font: AppConstants.Fonts.avenirNext18)
     
+    let sendEmail = TextConfig(text: "Send recovery email",
+                                 textColor: .white,
+                                 font: AppConstants.Fonts.avenirNext18)
+    
     let loginButtonIndigo = TextConfig(text: "Login",
                                  textColor: .systemIndigo,
                                  font: AppConstants.Fonts.avenirNext18)
@@ -77,6 +81,10 @@ struct LoginViewPresentationObject {
                                  textColor: .white,
                                  font: AppConstants.Fonts.avenirNext18)
     
+    let errorTitle = "Oooops!"
+    let successTitle = "Hooray!"
+    let passwRecoveryMessage = "Password restoration email has been sent successfully!"
+    
     let backgroundColor: UIColor = .white
     let cornerRadius: CGFloat = 22
 }
@@ -88,6 +96,7 @@ struct LoginViewModelInput {
     let passAgain: AnyPublisher<String?, Never>
     let switchStateTap: AnyPublisher<Void, Never>
     let loginTap: AnyPublisher<Void, Never>
+    let forgotPasswordTap: AnyPublisher<Void, Never>
 }
 
 struct LoginViewModelOutput {

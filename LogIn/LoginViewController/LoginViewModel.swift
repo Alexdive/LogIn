@@ -11,6 +11,7 @@ import Combine
 enum LoginState {
     case login
     case signup
+    case restorePassword
 }
 
 typealias VoidTrigger = PassthroughSubject<Void, Never>
@@ -19,6 +20,8 @@ protocol LoginViewModelType {
     var presentationObject: LoginViewPresentationObject { get }
     var transitionToLogin: VoidTrigger { get }
     var transitionToSignUp: VoidTrigger { get }
+    var transitionToRestorePassword: VoidTrigger { get }
+    var messagePublisher: PassthroughSubject<String, Never> { get }
     var onLogin: VoidTrigger { get }
     var loadingPublisher: AnyPublisher<Bool, Never> { get }
     var errorPublisher: AnyPublisher<Error, Never> { get }
@@ -29,6 +32,8 @@ final class LoginViewModel: LoginViewModelType {
     let presentationObject = LoginViewPresentationObject()
     var transitionToLogin = VoidTrigger()
     var transitionToSignUp = VoidTrigger()
+    var transitionToRestorePassword = VoidTrigger()
+    var messagePublisher = PassthroughSubject<String, Never>()
     var onLogin = VoidTrigger()
     
     private var cancellable = Set<AnyCancellable>()
@@ -43,19 +48,28 @@ final class LoginViewModel: LoginViewModelType {
         errorIndicator.errors.eraseToAnyPublisher()
     }
     
+    @Published
     private var loginState: LoginState = .login {
         didSet {
-            if loginState == .login {
+            switch loginState {
+            case .login:
                 transitionToLogin.send()
-            } else {
+            case .signup:
                 transitionToSignUp.send()
+            case .restorePassword:
+                transitionToRestorePassword.send()
             }
         }
     }
     
     private lazy var receiveValueCompletion: () -> Void = {[unowned self] in
-        self.onLogin.send()
-        self.loginState = .login
+        if case self.loginState = LoginState.restorePassword {
+            self.loginState = .login
+            self.messagePublisher.send(presentationObject.passwRecoveryMessage)
+        } else {
+            self.onLogin.send()
+            self.loginState = .login
+        }
     }
     
     typealias LoginService = (_ state: LoginState, _ email: String, _ password: String) -> AnyPublisher<Void, Error>
@@ -65,16 +79,21 @@ final class LoginViewModel: LoginViewModelType {
         self.loginService = loginService
     }
     
+    deinit {
+        print("deinit \(self)")
+    }
+    
     private func onSwitchStateTap() {
-        if loginState == .login {
+        switch loginState {
+        case .login:
             loginState = .signup
-        } else {
+        default:
             loginState = .login
         }
     }
     
     private func auth(email: String, password:String) {
-        self.loginService(self.loginState, email, password)
+        loginService(loginState, email, password)
             .trackActivity(activityIndicator)
             .trackError(errorIndicator)
             .sink(receiveValue: receiveValueCompletion)
@@ -97,26 +116,30 @@ final class LoginViewModel: LoginViewModelType {
             .compactMap { $0 }
         
         input.switchStateTap
-            .sink { self.onSwitchStateTap() }
+            .sink {[unowned self] in
+                self.onSwitchStateTap() }
             .store(in: &cancellable)
         
-        var emailString = ""
-        var passString = ""
-        
-        password.sink { passString = $0  }
-        .store(in: &cancellable)
-        
-        email.sink { emailString = $0 }
-        .store(in: &cancellable)
+        let credentials = email
+            .combineLatest(password)
+            .eraseToAnyPublisher()
         
         input.loginTap
-            .sink { 
-                self.auth(email: emailString, password: passString)
+            .withLatestFrom(credentials)
+            .map { $1 }
+            .sink {[unowned self] in
+                self.auth(email: $0.0, password: $0.1) }
+            .store(in: &cancellable)
+        
+        input.forgotPasswordTap
+            .sink {[unowned self] in
+                self.loginState = .restorePassword
             }
             .store(in: &cancellable)
         
         let isValidEmail = email
-            .map { self.isValidEmail($0) }
+            .map {[unowned self] in
+                self.isValidEmail($0) }
         
         let isValidPassword = password
             .map { $0.count > 6 }
@@ -124,14 +147,17 @@ final class LoginViewModel: LoginViewModelType {
         let isSamePassword = password.combineLatest(passwordAgain)
             .map { $0 == $1 }
         
-        let output: AnyPublisher<LoginViewModelOutput, Never> = isValidEmail
-            .combineLatest(isValidPassword, isSamePassword)
-            .map { isValidEmail, isValidPassword, isSamePassword in
+        let output: AnyPublisher<LoginViewModelOutput, Never> = $loginState
+            .combineLatest(isValidEmail, isValidPassword, isSamePassword)
+            .map { state, isValidEmail, isValidPassword, isSamePassword in
                 var loginEnabled = false
-                if case self.loginState = LoginState.signup {
-                    loginEnabled = isValidEmail && isValidPassword && isSamePassword
-                } else {
+                switch state {
+                case .login:
                     loginEnabled = isValidEmail && isValidPassword
+                case .signup:
+                    loginEnabled = isValidEmail && isValidPassword && isSamePassword
+                case .restorePassword:
+                    loginEnabled = isValidEmail
                 }
                 return LoginViewModelOutput(emailTint: isValidEmail ? .systemGreen : .systemRed,
                                             passwTint: isValidPassword ? .systemGreen : .systemGray2,
