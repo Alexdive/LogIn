@@ -79,6 +79,10 @@ final class LoginViewModel: LoginViewModelType {
         self.loginService = loginService
     }
     
+    deinit {
+        print("deinit \(self)")
+    }
+    
     private func onSwitchStateTap() {
         switch loginState {
         case .login:
@@ -89,7 +93,7 @@ final class LoginViewModel: LoginViewModelType {
     }
     
     private func auth(email: String, password:String) {
-        self.loginService(self.loginState, email, password)
+        loginService(loginState, email, password)
             .trackActivity(activityIndicator)
             .trackError(errorIndicator)
             .sink(receiveValue: receiveValueCompletion)
@@ -112,7 +116,8 @@ final class LoginViewModel: LoginViewModelType {
             .compactMap { $0 }
         
         input.switchStateTap
-            .sink { self.onSwitchStateTap() }
+            .sink {[unowned self] in
+                self.onSwitchStateTap() }
             .store(in: &cancellable)
         
         let credentials = email
@@ -122,17 +127,19 @@ final class LoginViewModel: LoginViewModelType {
         input.loginTap
             .withLatestFrom(credentials)
             .map { $1 }
-            .sink { self.auth(email: $0.0, password: $0.1) }
+            .sink {[unowned self] in
+                self.auth(email: $0.0, password: $0.1) }
             .store(in: &cancellable)
         
         input.forgotPasswordTap
-            .sink {
+            .sink {[unowned self] in
                 self.loginState = .restorePassword
             }
             .store(in: &cancellable)
         
         let isValidEmail = email
-            .map { self.isValidEmail($0) }
+            .map {[unowned self] in
+                self.isValidEmail($0) }
         
         let isValidPassword = password
             .map { $0.count > 6 }

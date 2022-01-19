@@ -207,7 +207,7 @@ final class LoginViewController: UIViewController {
         }
     }
     deinit {
-        print(self.description, "deinit")
+        print("deinit \(self)")
     }
 }
 
