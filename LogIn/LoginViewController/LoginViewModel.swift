@@ -137,15 +137,15 @@ final class LoginViewModel: LoginViewModelType {
             }
             .store(in: &cancellable)
         
-        let isValidEmail = email
+        let isValidEmail = $loginState.combineLatest(email)
             .map {[unowned self] in
-                self.isValidEmail($0) }
+                self.isValidEmail($1) }
         
-        let isValidPassword = password
-            .map { $0.count > 6 }
+        let isValidPassword = $loginState.combineLatest(password)
+            .map { $1.count > 6 }
         
-        let isSamePassword = password.combineLatest(passwordAgain)
-            .map { $0 == $1 }
+        let isSamePassword = $loginState.combineLatest(password, passwordAgain)
+            .map { $1 == $2 }
         
         let output: AnyPublisher<LoginViewModelOutput, Never> = $loginState
             .combineLatest(isValidEmail, isValidPassword, isSamePassword)

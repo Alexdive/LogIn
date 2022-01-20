@@ -49,7 +49,7 @@ struct LoginViewPresentationObject {
                                      textColor: .systemGray2,
                                      font: AppConstants.Fonts.avenirNext18)
     
-    let loginButton = TextConfig(text: "Login",
+    let loginWhite = TextConfig(text: "Login",
                                  textColor: .white,
                                  font: AppConstants.Fonts.avenirNext18)
     
@@ -57,7 +57,7 @@ struct LoginViewPresentationObject {
                                  textColor: .white,
                                  font: AppConstants.Fonts.avenirNext18)
     
-    let loginButtonIndigo = TextConfig(text: "Login",
+    let loginIndigo = TextConfig(text: "Login",
                                  textColor: .systemIndigo,
                                  font: AppConstants.Fonts.avenirNext18)
     
@@ -69,11 +69,11 @@ struct LoginViewPresentationObject {
                                  textColor: .systemIndigo,
                                  font: AppConstants.Fonts.avenirNext13)
     
-    let switchStateButton = TextConfig(text: "Sign Up",
+    let signUpWhite = TextConfig(text: "Sign Up",
                                  textColor: .white,
                                  font: AppConstants.Fonts.avenirNext18)
     
-    let switchStateButtonIndigo = TextConfig(text: "Sign Up",
+    let signUpIndigo = TextConfig(text: "Sign Up",
                                  textColor: .systemIndigo,
                                  font: AppConstants.Fonts.avenirNext18)
     

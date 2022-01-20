@@ -43,6 +43,7 @@ final class LoginViewController: UIViewController {
         configure(textfield: tf, with: viewModel.presentationObject.passwordTF)
         tf.isSecureTextEntry = true
         tf.textContentType = .oneTimeCode
+        tf.clearsOnBeginEditing = true
         tf.enablePasswordHideToggle()
         return tf
     }()
@@ -52,6 +53,7 @@ final class LoginViewController: UIViewController {
         configure(textfield: tf, with: viewModel.presentationObject.passwordAgainTF)
         tf.isSecureTextEntry = true
         tf.textContentType = .oneTimeCode
+        tf.clearsOnBeginEditing = true
         tf.enablePasswordHideToggle()
         tf.isHidden = true
         tf.alpha = 0
@@ -61,7 +63,7 @@ final class LoginViewController: UIViewController {
     private lazy var loginButton: UIButton = {
         let button = UIButton()
         button.layer.cornerRadius = viewModel.presentationObject.cornerRadius
-        let attributedTitle = makeAttributedString(with: viewModel.presentationObject.loginButton)
+        let attributedTitle = makeAttributedString(with: viewModel.presentationObject.loginWhite)
         button.setAttributedTitle(attributedTitle, for: .normal)
         button.setBackgroundColor(.systemIndigo, forState: .normal)
         button.setBackgroundColor(.lightGray, forState: .disabled)
@@ -88,7 +90,7 @@ final class LoginViewController: UIViewController {
     private lazy var switchStateButton: UIButton = {
         let button = UIButton()
         button.layer.cornerRadius = viewModel.presentationObject.cornerRadius
-        let attributedTitle = makeAttributedString(with: viewModel.presentationObject.switchStateButtonIndigo)
+        let attributedTitle = makeAttributedString(with: viewModel.presentationObject.signUpIndigo)
         button.setAttributedTitle(attributedTitle, for: .normal)
         button.setBackgroundColor(.systemGray6, forState: .normal)
         button.setBackgroundColor(.lightGray, forState: .disabled)
@@ -254,17 +256,19 @@ extension LoginViewController {
     }
     
     // MARK: - Animated Transitions
-    private func transitionToEmptyButtonTitle() {
-        let attributedEmptyTitle = makeAttributedString(with: viewModel.presentationObject.empty)
-        UIView.transition(with: loginButton, duration: 0.3, options: .transitionCrossDissolve, animations: {
-            self.loginButton.setAttributedTitle(attributedEmptyTitle, for: .normal)
+    private func buttonTitleTransition(_ loginTitle: TextConfig, _ switchTitle: TextConfig, delay: TimeInterval) {
+        let attributedTitleLogin = makeAttributedString(with: loginTitle)
+        UIView.transition(with: loginButton, duration: delay, options: .transitionCrossDissolve, animations: {
+            self.loginButton.setAttributedTitle(attributedTitleLogin, for: .normal)
         })
-        UIView.transition(with: switchStateButton, duration: 0.3, options: .transitionCrossDissolve, animations: {
-            self.switchStateButton.setAttributedTitle(attributedEmptyTitle, for: .normal)
+        let attributedTitleSignUp = makeAttributedString(with: switchTitle)
+        UIView.transition(with: switchStateButton, duration: delay, options: .transitionCrossDissolve, animations: {
+            self.switchStateButton.setAttributedTitle(attributedTitleSignUp, for: .normal)
         })
     }
     
     private func transitionToLoginWithAnimation() {
+        loginButton.isEnabled = false
         UIView.animate(withDuration: 0.5, delay: 0, options: [.curveEaseInOut]) {[self] in
             switchStateButton.transform = .identity
             switchStateButtonShadowView.transform = .identity
@@ -273,7 +277,9 @@ extension LoginViewController {
         } completion: {[self] _ in
             passwordAgainTextField.isHidden = true
             forgotPasswordButton.isHidden = false
-            transitionToEmptyButtonTitle()
+            buttonTitleTransition(viewModel.presentationObject.empty,
+                                  viewModel.presentationObject.empty,
+                                  delay: 0.3)
         }
         
         UIView.animate(withDuration: 0.5, delay: 0.3) {[self] in
@@ -285,16 +291,10 @@ extension LoginViewController {
             forgotPasswordButton.alpha = 1
             needAccountLabel.alpha = 0
         } completion: {[self] _ in
-            UIView.transition(with: loginButton, duration: 0.5, options: .transitionCrossDissolve, animations: {
-                let attributedTitleLogin = makeAttributedString(with: viewModel.presentationObject.loginButton)
-                loginButton.setAttributedTitle(attributedTitleLogin, for: .normal)
-            })
-            UIView.transition(with: switchStateButton, duration: 0.5, options: .transitionCrossDissolve, animations: {
-                let attributedTitleSignUp = makeAttributedString(with: viewModel.presentationObject.switchStateButtonIndigo)
-                switchStateButton.setAttributedTitle(attributedTitleSignUp, for: .normal)
-            })
+            buttonTitleTransition(viewModel.presentationObject.loginWhite,
+                                  viewModel.presentationObject.signUpIndigo,
+                                  delay: 0.5)
             configure(label: needAccountLabel, with: viewModel.presentationObject.needAccountText)
-            loginButton.isEnabled = false
         }
         
         UIView.animate(withDuration: 0.5, delay: 0.8) {
@@ -312,7 +312,7 @@ extension LoginViewController {
             resetPasswordTextFields()
         } completion: {[self] _ in
             forgotPasswordButton.isHidden = true
-            transitionToEmptyButtonTitle()
+            buttonTitleTransition(viewModel.presentationObject.empty, viewModel.presentationObject.empty, delay: 0.3)
         }
         
         UIView.animate(withDuration: 0.5, delay: 0.3, options: [.curveEaseInOut]) {[self] in
@@ -321,16 +321,10 @@ extension LoginViewController {
             loginButtonShadowView.transform = CGAffineTransform(translationX: 0, y: loginYShift)
             passwordAgainTextField.transform = CGAffineTransform(translationX: 0, y: loginYShift)
         } completion: {[self] _ in
-            UIView.transition(with: loginButton, duration: 0.5, options: .transitionCrossDissolve, animations: {
-                let attributedTitleSignUp = makeAttributedString(with: viewModel.presentationObject.switchStateButton)
-                loginButton.setAttributedTitle(attributedTitleSignUp, for: .normal)
-            })
-            UIView.transition(with: switchStateButton, duration: 0.5, options: .transitionCrossDissolve, animations: {
-                let attributedTitleLogin = makeAttributedString(with: viewModel.presentationObject.loginButtonIndigo)
-                switchStateButton.setAttributedTitle(attributedTitleLogin, for: .normal)
-            })
+            buttonTitleTransition(viewModel.presentationObject.signUpWhite,
+                                  viewModel.presentationObject.loginIndigo,
+                                  delay: 0.5)
             configure(label: needAccountLabel, with: viewModel.presentationObject.haveAccountText)
-            loginButton.isEnabled = false
         }
         
         UIView.animate(withDuration: 0.5, delay: 0.5) {
@@ -348,22 +342,17 @@ extension LoginViewController {
         UIView.animate(withDuration: 0.5) { [self] in
             passwordTextField.alpha = 0
             forgotPasswordButton.alpha = 0
-        } completion: { _ in
-            self.transitionToEmptyButtonTitle()
+        } completion: {[self] _ in
+            buttonTitleTransition(viewModel.presentationObject.empty, viewModel.presentationObject.empty, delay: 0.3)
         }
         
         UIView.animate(withDuration: 0.5, delay: 0.3, options: [.curveEaseInOut]) {[self] in
             loginButton.transform = CGAffineTransform(translationX: 0, y: -loginYShift)
             loginButtonShadowView.transform = CGAffineTransform(translationX: 0, y: -loginYShift)
         } completion: {[self] _ in
-            UIView.transition(with: loginButton, duration: 0.5, options: .transitionCrossDissolve, animations: {
-                let attributedTitleSignUp = makeAttributedString(with: viewModel.presentationObject.sendEmail)
-                loginButton.setAttributedTitle(attributedTitleSignUp, for: .normal)
-            })
-            UIView.transition(with: switchStateButton, duration: 0.5, options: .transitionCrossDissolve, animations: {
-                let attributedTitleLogin = makeAttributedString(with: viewModel.presentationObject.loginButtonIndigo)
-                switchStateButton.setAttributedTitle(attributedTitleLogin, for: .normal)
-            })
+            buttonTitleTransition(viewModel.presentationObject.sendEmail,
+                                  viewModel.presentationObject.loginIndigo,
+                                  delay: 0.5)
             configure(label: needAccountLabel, with: viewModel.presentationObject.haveAccountText)
         }
     }
