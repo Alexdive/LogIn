@@ -24,7 +24,7 @@
 		0D51A43E275F59A900DE6E41 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 0D51A43D275F59A900DE6E41 /* Assets.xcassets */; };
 		0D51A441275F59A900DE6E41 /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 0D51A43F275F59A900DE6E41 /* LaunchScreen.storyboard */; };
 		0D51A44B275F902100DE6E41 /* UIExtensions.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0D51A44A275F902100DE6E41 /* UIExtensions.swift */; };
-		0D51A44F27623BF900DE6E41 /* CombineControlProperty.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0D51A44E27623BF900DE6E41 /* CombineControlProperty.swift */; };
+		0D51A44F27623BF900DE6E41 /* UIControl+Combine.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0D51A44E27623BF900DE6E41 /* UIControl+Combine.swift */; };
 		0DBA3CFB2779BFDF0048BFC1 /* AppConstants.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0DBA3CFA2779BFDF0048BFC1 /* AppConstants.swift */; };
 /* End PBXBuildFile section */
 
@@ -46,7 +46,7 @@
 		0D51A440275F59A900DE6E41 /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = Base; path = Base.lproj/LaunchScreen.storyboard; sourceTree = "<group>"; };
 		0D51A442275F59A900DE6E41 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		0D51A44A275F902100DE6E41 /* UIExtensions.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UIExtensions.swift; sourceTree = "<group>"; };
-		0D51A44E27623BF900DE6E41 /* CombineControlProperty.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CombineControlProperty.swift; sourceTree = "<group>"; };
+		0D51A44E27623BF900DE6E41 /* UIControl+Combine.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "UIControl+Combine.swift"; sourceTree = "<group>"; };
 		0DBA3CFA2779BFDF0048BFC1 /* AppConstants.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppConstants.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
@@ -63,6 +63,14 @@
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
+		0D36346327AF769500B3C6A7 /* UserViewController */ = {
+			isa = PBXGroup;
+			children = (
+				0D4B109A278D892F0070BC8B /* UserViewController.swift */,
+			);
+			path = UserViewController;
+			sourceTree = "<group>";
+		};
 		0D418B4827798984008148E6 /* LoginViewController */ = {
 			isa = PBXGroup;
 			children = (
@@ -77,7 +85,7 @@
 		0D4B1097278D72C80070BC8B /* Helpers */ = {
 			isa = PBXGroup;
 			children = (
-				0D51A44E27623BF900DE6E41 /* CombineControlProperty.swift */,
+				0D51A44E27623BF900DE6E41 /* UIControl+Combine.swift */,
 				0D25F1A12796F4280044868E /* Combine-withLatestFrom.swift */,
 				0D2E17CA27926AFE00004FC8 /* ActivityIndicator.swift */,
 				0D2E17CC27926B5000004FC8 /* ErrorIndicator.swift */,
@@ -126,10 +134,10 @@
 			isa = PBXGroup;
 			children = (
 				0D418B4827798984008148E6 /* LoginViewController */,
+				0D36346327AF769500B3C6A7 /* UserViewController */,
 				0D4B1098278D72DE0070BC8B /* Auth */,
 				0D4B1097278D72C80070BC8B /* Helpers */,
 				0D4B1099278D72FE0070BC8B /* CommonFiles */,
-				0D4B109A278D892F0070BC8B /* UserViewController.swift */,
 				0D51A442275F59A900DE6E41 /* Info.plist */,
 				0D4B108E278D68670070BC8B /* GoogleService-Info.plist */,
 			);
@@ -224,7 +232,7 @@
 				0D2E17CB27926AFE00004FC8 /* ActivityIndicator.swift in Sources */,
 				0D2E17CD27926B5000004FC8 /* ErrorIndicator.swift in Sources */,
 				0D418B472779784E008148E6 /* LoginViewController.swift in Sources */,
-				0D51A44F27623BF900DE6E41 /* CombineControlProperty.swift in Sources */,
+				0D51A44F27623BF900DE6E41 /* UIControl+Combine.swift in Sources */,
 				0D418B4A27799743008148E6 /* LoginModels.swift in Sources */,
 				0D51A44B275F902100DE6E41 /* UIExtensions.swift in Sources */,
 				0D418B4C27799809008148E6 /* LoginViewModel.swift in Sources */,

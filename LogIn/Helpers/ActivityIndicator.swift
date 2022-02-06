@@ -70,4 +70,3 @@ extension Publisher {
         activityIndicator.trackActivityOfPublisher(source: self)
     }
 }
-

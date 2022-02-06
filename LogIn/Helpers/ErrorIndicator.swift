@@ -54,4 +54,3 @@ extension Publisher {
         errorIndicator.trackErrorOfPublisher(source: self)
     }
 }
-

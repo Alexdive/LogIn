@@ -10,8 +10,15 @@ import Combine
 
 extension UITextField {
     var textPublisher: AnyPublisher<String?, Never> {
-        Publishers.ControlProperty(control: self, events: .defaultValueEvents, keyPath: \.text)
-                  .eraseToAnyPublisher()
+        NotificationCenter.default
+            .publisher(
+                for: UITextField.textDidChangeNotification,
+                object: self)
+            .map(\.object)
+            .map { $0 as! UITextField }
+            .map(\.text)
+            .prepend("")
+            .eraseToAnyPublisher()
     }
 }
 
@@ -41,7 +48,7 @@ extension UITextField {
         rightViewMode = .always
     }
     
-    @objc func togglePasswordView(_ sender: Any) {
+    @objc private func togglePasswordView(_ sender: Any) {
         isSecureTextEntry.toggle()
         (rightView as? UIButton)?.isSelected.toggle()
     }
