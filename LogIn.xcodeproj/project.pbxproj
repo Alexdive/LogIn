@@ -11,6 +11,10 @@
 		0D2E17CB27926AFE00004FC8 /* ActivityIndicator.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0D2E17CA27926AFE00004FC8 /* ActivityIndicator.swift */; };
 		0D2E17CD27926B5000004FC8 /* ErrorIndicator.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0D2E17CC27926B5000004FC8 /* ErrorIndicator.swift */; };
 		0D2E17CF279272BB00004FC8 /* LoginBackView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0D2E17CE279272BB00004FC8 /* LoginBackView.swift */; };
+		0D36346527AFBA4600B3C6A7 /* TaskModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0D36346427AFBA4600B3C6A7 /* TaskModel.swift */; };
+		0D36346727AFBA7900B3C6A7 /* TaskRowView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0D36346627AFBA7900B3C6A7 /* TaskRowView.swift */; };
+		0D36346927B0B1D600B3C6A7 /* SwiftUI+KeyboardFrameModifier.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0D36346827B0B1D600B3C6A7 /* SwiftUI+KeyboardFrameModifier.swift */; };
+		0D36346B27B0B8B900B3C6A7 /* AlertWithTF.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0D36346A27B0B8B900B3C6A7 /* AlertWithTF.swift */; };
 		0D418B472779784E008148E6 /* LoginViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0D418B462779784E008148E6 /* LoginViewController.swift */; };
 		0D418B4A27799743008148E6 /* LoginModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0D418B4927799743008148E6 /* LoginModels.swift */; };
 		0D418B4C27799809008148E6 /* LoginViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0D418B4B27799809008148E6 /* LoginViewModel.swift */; };
@@ -18,7 +22,7 @@
 		0D4B1092278D6A640070BC8B /* FirebaseAnalytics in Frameworks */ = {isa = PBXBuildFile; productRef = 0D4B1091278D6A640070BC8B /* FirebaseAnalytics */; };
 		0D4B1094278D6A640070BC8B /* FirebaseAuth in Frameworks */ = {isa = PBXBuildFile; productRef = 0D4B1093278D6A640070BC8B /* FirebaseAuth */; };
 		0D4B1096278D6C230070BC8B /* AuthManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0D4B1095278D6C230070BC8B /* AuthManager.swift */; };
-		0D4B109B278D892F0070BC8B /* UserViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0D4B109A278D892F0070BC8B /* UserViewController.swift */; };
+		0D4B109B278D892F0070BC8B /* TasksTableView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0D4B109A278D892F0070BC8B /* TasksTableView.swift */; };
 		0D51A435275F59A500DE6E41 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0D51A434275F59A500DE6E41 /* AppDelegate.swift */; };
 		0D51A437275F59A500DE6E41 /* SceneDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0D51A436275F59A500DE6E41 /* SceneDelegate.swift */; };
 		0D51A43E275F59A900DE6E41 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 0D51A43D275F59A900DE6E41 /* Assets.xcassets */; };
@@ -33,12 +37,16 @@
 		0D2E17CA27926AFE00004FC8 /* ActivityIndicator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ActivityIndicator.swift; sourceTree = "<group>"; };
 		0D2E17CC27926B5000004FC8 /* ErrorIndicator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ErrorIndicator.swift; sourceTree = "<group>"; };
 		0D2E17CE279272BB00004FC8 /* LoginBackView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LoginBackView.swift; sourceTree = "<group>"; };
+		0D36346427AFBA4600B3C6A7 /* TaskModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TaskModel.swift; sourceTree = "<group>"; };
+		0D36346627AFBA7900B3C6A7 /* TaskRowView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TaskRowView.swift; sourceTree = "<group>"; };
+		0D36346827B0B1D600B3C6A7 /* SwiftUI+KeyboardFrameModifier.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "SwiftUI+KeyboardFrameModifier.swift"; sourceTree = "<group>"; };
+		0D36346A27B0B8B900B3C6A7 /* AlertWithTF.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AlertWithTF.swift; sourceTree = "<group>"; };
 		0D418B462779784E008148E6 /* LoginViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LoginViewController.swift; sourceTree = "<group>"; };
 		0D418B4927799743008148E6 /* LoginModels.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LoginModels.swift; sourceTree = "<group>"; };
 		0D418B4B27799809008148E6 /* LoginViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LoginViewModel.swift; sourceTree = "<group>"; };
 		0D4B108E278D68670070BC8B /* GoogleService-Info.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; path = "GoogleService-Info.plist"; sourceTree = "<group>"; };
 		0D4B1095278D6C230070BC8B /* AuthManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AuthManager.swift; sourceTree = "<group>"; };
-		0D4B109A278D892F0070BC8B /* UserViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UserViewController.swift; sourceTree = "<group>"; };
+		0D4B109A278D892F0070BC8B /* TasksTableView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TasksTableView.swift; sourceTree = "<group>"; };
 		0D51A431275F59A500DE6E41 /* LogIn.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = LogIn.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		0D51A434275F59A500DE6E41 /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
 		0D51A436275F59A500DE6E41 /* SceneDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SceneDelegate.swift; sourceTree = "<group>"; };
@@ -66,7 +74,10 @@
 		0D36346327AF769500B3C6A7 /* UserViewController */ = {
 			isa = PBXGroup;
 			children = (
-				0D4B109A278D892F0070BC8B /* UserViewController.swift */,
+				0D4B109A278D892F0070BC8B /* TasksTableView.swift */,
+				0D36346A27B0B8B900B3C6A7 /* AlertWithTF.swift */,
+				0D36346627AFBA7900B3C6A7 /* TaskRowView.swift */,
+				0D36346427AFBA4600B3C6A7 /* TaskModel.swift */,
 			);
 			path = UserViewController;
 			sourceTree = "<group>";
@@ -88,6 +99,7 @@
 				0D51A44E27623BF900DE6E41 /* UIControl+Combine.swift */,
 				0D25F1A12796F4280044868E /* Combine-withLatestFrom.swift */,
 				0D2E17CA27926AFE00004FC8 /* ActivityIndicator.swift */,
+				0D36346827B0B1D600B3C6A7 /* SwiftUI+KeyboardFrameModifier.swift */,
 				0D2E17CC27926B5000004FC8 /* ErrorIndicator.swift */,
 				0D51A44A275F902100DE6E41 /* UIExtensions.swift */,
 				0DBA3CFA2779BFDF0048BFC1 /* AppConstants.swift */,
@@ -223,17 +235,21 @@
 			buildActionMask = 2147483647;
 			files = (
 				0D51A435275F59A500DE6E41 /* AppDelegate.swift in Sources */,
-				0D4B109B278D892F0070BC8B /* UserViewController.swift in Sources */,
+				0D4B109B278D892F0070BC8B /* TasksTableView.swift in Sources */,
+				0D36346727AFBA7900B3C6A7 /* TaskRowView.swift in Sources */,
 				0D4B1096278D6C230070BC8B /* AuthManager.swift in Sources */,
 				0D2E17CF279272BB00004FC8 /* LoginBackView.swift in Sources */,
 				0D25F1A22796F4280044868E /* Combine-withLatestFrom.swift in Sources */,
 				0D51A437275F59A500DE6E41 /* SceneDelegate.swift in Sources */,
+				0D36346927B0B1D600B3C6A7 /* SwiftUI+KeyboardFrameModifier.swift in Sources */,
 				0DBA3CFB2779BFDF0048BFC1 /* AppConstants.swift in Sources */,
 				0D2E17CB27926AFE00004FC8 /* ActivityIndicator.swift in Sources */,
 				0D2E17CD27926B5000004FC8 /* ErrorIndicator.swift in Sources */,
 				0D418B472779784E008148E6 /* LoginViewController.swift in Sources */,
+				0D36346B27B0B8B900B3C6A7 /* AlertWithTF.swift in Sources */,
 				0D51A44F27623BF900DE6E41 /* UIControl+Combine.swift in Sources */,
 				0D418B4A27799743008148E6 /* LoginModels.swift in Sources */,
+				0D36346527AFBA4600B3C6A7 /* TaskModel.swift in Sources */,
 				0D51A44B275F902100DE6E41 /* UIExtensions.swift in Sources */,
 				0D418B4C27799809008148E6 /* LoginViewModel.swift in Sources */,
 			);

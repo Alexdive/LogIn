@@ -7,6 +7,7 @@
 
 import UIKit
 import Combine
+import SwiftUI
 
 class SceneDelegate: UIResponder, UIWindowSceneDelegate {
     
@@ -25,6 +26,10 @@ class SceneDelegate: UIResponder, UIWindowSceneDelegate {
                 }
             }
             .store(in: &cancellable)
+        
+        // comment below 2 lines to see login on start
+        let tableView = UIHostingController(rootView: TasksTableView())
+        self.window?.rootViewController = tableView
         
         window?.makeKeyAndVisible()
     }
@@ -46,8 +51,8 @@ class SceneDelegate: UIResponder, UIWindowSceneDelegate {
         let viewModel = LoginViewModel(loginService: loginService)
         viewModel.onLogin
             .sink {[unowned self] _ in
-                let vc = UINavigationController(rootViewController: UserViewController())
-                self.window?.rootViewController = vc
+                let tableView = UIHostingController(rootView: TasksTableView())
+                self.window?.rootViewController = tableView
             }
             .store(in: &cancellable)
         
