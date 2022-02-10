@@ -7,7 +7,8 @@
 
 import SwiftUI
 
-struct Alert: View {
+// check system alert
+struct AlertWithTF: View {
     @State private var title: String = ""
     @State private var description: String = ""
     var addAction: (String, String) -> Void
