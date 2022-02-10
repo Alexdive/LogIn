@@ -14,6 +14,8 @@ struct AlertWithTF: View {
     var addAction: (String, String) -> Void
     var cancelAction: () -> Void
     
+    let width: CGFloat = 300
+    
     var body: some View {
         VStack {
             Text("Enter Task").font(.headline)
@@ -27,24 +29,22 @@ struct AlertWithTF: View {
                 .padding([.leading, .trailing])
             Divider()
             HStack(alignment: .center) {
-                Spacer()
                 Button(action: {
                     if !title.isEmpty || !description.isEmpty {
                         addAction(title, description)
                     }
-                }) { Text(" Done ") }
-                Spacer()
+                }) { Text("Done") }
+                .frame(width: width/2-10, height: 40)
                 Divider()
-                Spacer()
                 Button(action: {
                     cancelAction()
                 }) { Text("Cancel") }
-                Spacer()
+                .frame(width: width/2-10, height: 40)
             }
             Spacer()
         }
         .background(Color(white: 0.95))
-        .frame(width: 300, height: 220, alignment: .center)
+        .frame(width: width, height: 220, alignment: .center)
         .cornerRadius(20).shadow(radius: 20)
         .padding(.bottom, 100)
     }

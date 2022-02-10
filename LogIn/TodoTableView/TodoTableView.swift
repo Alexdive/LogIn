@@ -10,7 +10,7 @@ import SwiftUI
 struct TodoTableView: View {
     
     @State private var showAlert = false
-    @State var editMode: EditMode = .inactive
+    @State private var editMode: EditMode = .inactive
     // cant make it work with this approach
     //    @Environment(\.editMode) private var editMode
     @StateObject private var viewModel = TasksViewModel()
@@ -29,7 +29,6 @@ struct TodoTableView: View {
                         showAlert.toggle()
                     }
                 }
-                
             }
             .navigationBarTitle(Text("Tasks"))
             .navigationBarItems(leading: EditButton(), trailing: trailingNavBarButtons)
@@ -61,6 +60,8 @@ struct TodoTableView: View {
             .onDelete(perform: delete)
             .onMove(perform: onMove)
         }
+        .blur(radius: showAlert ? 5 : 0)
+        .offset(y: 1)
     }
     
     private func onAdd() {
