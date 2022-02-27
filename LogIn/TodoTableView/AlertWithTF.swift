@@ -28,24 +28,36 @@ struct AlertWithTF: View {
                 .textFieldStyle(RoundedBorderTextFieldStyle())
                 .padding([.leading, .trailing])
             Divider()
-            HStack(alignment: .center) {
+            HStack {
                 Button(action: {
                     if !title.isEmpty || !description.isEmpty {
                         addAction(title, description)
                     }
-                }) { Text("Done") }
-                .frame(width: width/2-10, height: 40)
-                Divider()
+                }) {
+                    Text("Done")
+                }
+                .frame(maxWidth: .infinity)
+               Divider()
                 Button(action: {
                     cancelAction()
-                }) { Text("Cancel") }
-                .frame(width: width/2-10, height: 40)
+                }) {
+                    Text("Cancel")
+                }
+                .frame(maxWidth: .infinity)
             }
+            .frame(height: 45)
             Spacer()
         }
         .background(Color(white: 0.95))
         .frame(width: width, height: 220, alignment: .center)
         .cornerRadius(20).shadow(radius: 20)
         .padding(.bottom, 100)
+    }
+}
+
+struct AlertWithTF_Previews: PreviewProvider {
+    static var previews: some View {
+        AlertWithTF { _, _ in
+        } cancelAction: {}
     }
 }

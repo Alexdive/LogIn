@@ -7,6 +7,10 @@
 
 import Foundation
 
+enum PersistenceKey {
+    static let todo = "Todo"
+}
+
 enum PersistenceError: Error {
     case codableError(Error)
     case noDataForKey
@@ -17,12 +21,8 @@ protocol Persistence {
     func getObject<T: Codable>(for key: String) throws -> T
 }
 
-extension Persistence {
-    var todoKey: String { "Todo" }
-}
-
 struct Persister: Persistence {
-    let userDefaults = UserDefaults.standard
+    let userDefaults: UserDefaults
     
     func saveObject<T: Codable>(_ object: T, for key: String) throws {
         do {

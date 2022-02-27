@@ -7,7 +7,7 @@
 
 import SwiftUI
 
-struct CheckMarkButton: ButtonStyle {
+private struct CheckMarkButton: ButtonStyle {
     @Binding var isDone: Bool
     
     func makeBody(configuration: Configuration) -> some View {
@@ -27,7 +27,7 @@ struct TodoRowView: View {
     var body: some View {
         HStack(alignment: .center) {
             Button(action: { action () },
-                   label: { EmptyView() })
+                   label: {})
                 .buttonStyle(CheckMarkButton(isDone: $todo.isDone))
             
             VStack(alignment: .leading) {

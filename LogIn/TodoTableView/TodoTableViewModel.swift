@@ -14,17 +14,17 @@ final class TasksViewModel: ObservableObject {
     @Published private(set) var todos: [Todo]
     
     init() {
-        db = Persister()
+        db = Persister(userDefaults: UserDefaults.standard)
         // need to think how to handle these errors in terms of UX
-        todos = (try? db.getObject(for: db.todoKey)) ?? Todo.samples
+        todos = (try? db.getObject(for: PersistenceKey.todo)) ?? Todo.samples
     }
     
     func reload() {
-        todos = (try? db.getObject(for: db.todoKey)) ?? []
+        todos = (try? db.getObject(for: PersistenceKey.todo)) ?? []
     }
     
     func saveTodos() {
-        try? db.saveObject(todos, for: db.todoKey)
+        try? db.saveObject(todos, for: PersistenceKey.todo)
         reload()
     }
     
