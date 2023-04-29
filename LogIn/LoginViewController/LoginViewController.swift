@@ -159,33 +159,25 @@ final class LoginViewController: UIViewController {
             })
             .store(in: &subscriptions)
         
-        viewModel.transitionToLogin
-            .sink {[unowned self] _ in
-                self.transitionToLoginWithAnimation()
-            }
-            .store(in: &subscriptions)
-        
-        viewModel.transitionToSignUp
-            .sink {[unowned self] _ in
-                self.transitionToSignUpWithAnimation()
-            }
-            .store(in: &subscriptions)
-        
-        viewModel.transitionToRestorePassword
-            .sink {[unowned self] _ in
-                self.transitionToRestorePasswordWithAnimation()
+        viewModel.loginStateTransition
+            .sink {[unowned self] state in
+                switch state {
+                case .login: self.transitionToLoginWithAnimation()
+                case .signup: self.transitionToSignUpWithAnimation()
+                case .restorePassword: self.transitionToRestorePasswordWithAnimation()
+                }
             }
             .store(in: &subscriptions)
         
         viewModel.messagePublisher
             .sink {[unowned self] message in
-                self.showAlert(title: viewModel.presentationObject.successTitle ,message: message, delay: 0.5)
+                self.showAlert(title: viewModel.presentationObject.successTitle, message: message, delay: 0.5)
             }
             .store(in: &subscriptions)
         
         viewModel.errorPublisher
             .sink {[unowned self] error in
-                self.showAlert(title: viewModel.presentationObject.errorTitle ,message: error.localizedDescription, delay: 0.5)
+                self.showAlert(title: viewModel.presentationObject.errorTitle, message: error.localizedDescription, delay: 0.5)
                 self.animateHeaderOnError()
             }
             .store(in: &subscriptions)

@@ -11,8 +11,6 @@ struct TodoTableView: View {
     
     @State private var showAlert = false
     @State private var editMode: EditMode = .inactive
-    // cant make it work with below approach
-    //    @Environment(\.editMode) private var editMode
     @StateObject private var viewModel = TasksViewModel()
     
     let userEmail = AuthManager.shared.userEmail ?? ""

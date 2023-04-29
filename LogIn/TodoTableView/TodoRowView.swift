@@ -26,8 +26,8 @@ struct TodoRowView: View {
     
     var body: some View {
         HStack(alignment: .center) {
-            Button(action: { action () },
-                   label: {})
+            Button { action () }
+                   label: {}
                 .buttonStyle(CheckMarkButton(isDone: $todo.isDone))
             
             VStack(alignment: .leading) {
