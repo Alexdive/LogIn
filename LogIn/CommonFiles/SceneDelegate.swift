@@ -27,10 +27,6 @@ class SceneDelegate: UIResponder, UIWindowSceneDelegate {
             }
             .store(in: &cancellable)
         
-        // comment below 2 lines to see login on start
-        let tableView = UIHostingController(rootView: TodoTableView())
-        self.window?.rootViewController = tableView
-        
         window?.makeKeyAndVisible()
     }
     

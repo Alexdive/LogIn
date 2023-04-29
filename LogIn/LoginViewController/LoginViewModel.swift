@@ -15,12 +15,11 @@ enum LoginState {
 }
 
 typealias VoidTrigger = PassthroughSubject<Void, Never>
+typealias LoginStateTrigger = PassthroughSubject<LoginState, Never>
 
 protocol LoginViewModelType {
     var presentationObject: LoginViewPresentationObject { get }
-    var transitionToLogin: VoidTrigger { get }
-    var transitionToSignUp: VoidTrigger { get }
-    var transitionToRestorePassword: VoidTrigger { get }
+    var loginStateTransition: LoginStateTrigger { get }
     var messagePublisher: PassthroughSubject<String, Never> { get }
     var onLogin: VoidTrigger { get }
     var loadingPublisher: AnyPublisher<Bool, Never> { get }
@@ -30,9 +29,7 @@ protocol LoginViewModelType {
 
 final class LoginViewModel: LoginViewModelType {
     let presentationObject = LoginViewPresentationObject()
-    var transitionToLogin = VoidTrigger()
-    var transitionToSignUp = VoidTrigger()
-    var transitionToRestorePassword = VoidTrigger()
+    var loginStateTransition = LoginStateTrigger()
     var messagePublisher = PassthroughSubject<String, Never>()
     var onLogin = VoidTrigger()
     
@@ -51,14 +48,7 @@ final class LoginViewModel: LoginViewModelType {
     @Published
     private var loginState: LoginState = .login {
         didSet {
-            switch loginState {
-            case .login:
-                transitionToLogin.send()
-            case .signup:
-                transitionToSignUp.send()
-            case .restorePassword:
-                transitionToRestorePassword.send()
-            }
+            loginStateTransition.send(loginState)
         }
     }
     
